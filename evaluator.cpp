@@ -193,43 +193,43 @@ void TEvaluator::SetInstance( char* filename )
 
   count = 0;
   for (int s = 0; s < fNumOfStudent; ++s) {
-	  numOfEvent = 0;
-	  for (int i = 0; i < fNumOfEvent; ++i) {
-		  if (studentEvent[s][i] == 1) {
-			  listEvent[numOfEvent++] = i;
-			  ++count;
-		  }
-	  }
-	  for (int h1 = 0; h1 < numOfEvent; ++h1) {
-		  for (int h2 = 0; h2 < numOfEvent; ++h2) {
-			  e1 = listEvent[h1];
-			  e2 = listEvent[h2];
-			  ++fConf_EventEvent[e1][e2];
-		  }
-	  }
+    numOfEvent = 0;
+    for (int i = 0; i < fNumOfEvent; ++i) {
+      if (studentEvent[s][i] == 1) {
+        listEvent[numOfEvent++] = i;
+        ++count;
+      }
+    }
+    for (int h1 = 0; h1 < numOfEvent; ++h1) {
+      for (int h2 = 0; h2 < numOfEvent; ++h2) {
+        e1 = listEvent[h1];
+        e2 = listEvent[h2];
+        ++fConf_EventEvent[e1][e2];
+      }
+    }
   }
 
-  printf( "Count2Student = %d \n", count );
+  printf("Count2Student = %d \n", count);
 
   /* ken hachikubo add 12.25 */
   for (int p = 0; p < fNumOfProf; ++p) {
-	  numOfEvent = 0;
-	  for (int i = 0; i < fNumOfEvent; ++i) {
-		  if (profEvent[p][i] == 1) {
-			  listEvent[numOfEvent++] = i;
-			  ++count;
-		  }
-	  }
-	  for (int h1 = 0; h1 < numOfEvent; ++h1) {
-		  for (int h2 = 0; h2 < numOfEvent; ++h2) {
-			  e1 = listEvent[h1];
-			  e2 = listEvent[h2];
-			  ++fConf_EventEvent[e1][e2];
-		  }
-	  }
+    numOfEvent = 0;
+    for (int i = 0; i < fNumOfEvent; ++i) {
+      if (profEvent[p][i] == 1) {
+        listEvent[numOfEvent++] = i;
+        ++count;
+      }
+    }
+    for (int h1 = 0; h1 < numOfEvent; ++h1) {
+      for (int h2 = 0; h2 < numOfEvent; ++h2) {
+        e1 = listEvent[h1];
+        e2 = listEvent[h2];
+        ++fConf_EventEvent[e1][e2];
+      }
+    }
   }
-  printf( "Count2Prof = %d \n", count );
-  
+  printf("Count2Prof = %d \n", count);
+
   count = 0;
   for( int i = 0; i < fNumOfEvent; ++i ){
     fNumOfConfEvent_Event[ i ] = 0;
