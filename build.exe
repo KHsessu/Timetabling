@@ -1,0 +1,1 @@
+ g++ -o jikken -O2 main.cpp env.cpp evaluator.cpp indi.cpp operator.cpp search.cpp rand.cpp  sort.cpp -lm

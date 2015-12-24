@@ -1,0 +1,62 @@
+2015.12.12
+evaluator.h
+追加
+int fNumOfProf
+
+evaluator.cpp
+int **profEvent
+変更
+SetInstance内
+L33 scanf
+L64~L67 L87~90 profEventの変数セット
+
+
+2015.12.14
+evaluator.h
+追加
+fEvent_Required
+fEvent_TimeRequest
+
+evaluator.cpp
+追加
+Setinstance内
+L53 fEvent_Required = new int [fNumOfEvent];
+L54 fEvent_TimeRequest = new int [fNumOfEvent];
+L111~ファイルから上記変数に読み取り機構追加
+
+
+2015.12.15
+operator.h
+追加
+fEvent_Required
+fEvent_TimeRequest
+
+operator.cpp
+追加
+fEvent_Required
+fEvent_TimeRequest
+
+現在課題
+Setinstance内
+L174~ fConfEvent_Eventの計算方法を変更
+H1制約に対して影響がある可能性、要検証
+
+
+
+
+問題ファイル 例にsmall1k.tim(100 5 5 80 20)の実際の行数
+event数 room数 部屋の設備の種類 生徒数 教授数 L1
+(部屋数)行 部屋の容量 L2~6
+(生徒数*event数)行 生徒の授業に参加かどうか(0or1) L7~8006
+(教授数*event数)行 教授がどの授業担当か(0or1) L8007~10006
+(部屋数*feature)行 部屋の設備 L10007~10031
+(event数*feature)行 授業に必要な設備 L10032~10531
+(event数)必修かどうか L10532~10631
+(event数)授業の時限数 L10632~10731
+
+
+result
+何回目の探索か ベスト解を発見したときの試行回数 かかった時間 総ペナルティ 各ペナルティ
+
+_sol
+event[n]の時間 event[n]の部屋

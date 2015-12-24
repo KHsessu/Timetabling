@@ -1,0 +1,31 @@
+#Makefile
+#CXX = g++
+#TARGET = jikken
+#CXXFLAGS -02 
+
+jikken: main.o env.o evaluator.o indi.o operator.o search.o rand.o sort.o
+	g++ -o jikken -O2 main.o env.o evaluator.o indi.o operator.o search.o rand.o sort.o -lm ./jikken.exe 1 DST medium1.tim 1 10 100000 ./jikken.exe  1 DST medium5.tim 1 2 100000
+
+main.o: main.cpp
+	g++ -Wall -c main.cpp
+
+env.o: env.cpp
+	g++ -Wall -c env.cpp
+
+evaluator.o: evaluator.cpp
+	g++ -Wall -c evaluator.cpp
+
+indi.o: indi.cpp
+	g++ -Wall -c indi.cpp
+
+operator.o: operator.cpp
+	g++ -Wall -c operator.cpp
+
+search.o: search.cpp
+	g++ -Wall -c search.cpp
+
+rand.o: rand.cpp
+	g++ -Wall -c rand.cpp
+
+sort.o: sort.cpp
+	g++ -Wall -c sort.cpp
