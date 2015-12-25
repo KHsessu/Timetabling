@@ -120,15 +120,15 @@ void TSearch::LS_MakeFeasible()
     diffMin = 99999999;   
     numOfCandi = 0;
     for( int h = 0; h < fNumOfEjectEvent; ++h ){
-      eventIn = fListEjectEvent[ h ]; 
+      eventIn = fListEjectEvent[ h ];                         // イジェクトリストから授業を排出
 
       for( int t = 0; t < fNumOfTime; ++t ){
 	diffPenalty_S = this->DiffPenalty_S_Insert( eventIn, t );   /////// test
 	numOfFlagRoom = 0;	
 	for( int r = 0; r < fNumOfRoom; ++r ){
-	  event = fEvent_TimeRoom[ t ][ r ];
-	  if( event != -1 && fConf_EventEvent[ eventIn ][ event ] != 0 ){
-	    flagRoom[ r ] = 1;  // eject
+	  event = fEvent_TimeRoom[ t ][ r ];                        // 授業の競合チェック
+	  if( event != -1 && fConf_EventEvent[ eventIn ][ event ] != 0 ){ // 競合していれば
+	    flagRoom[ r ] = 1;  // eject 授業を入れる部屋の候補から外す
 	    ++numOfFlagRoom;
 	  }
 	  else 
@@ -137,7 +137,7 @@ void TSearch::LS_MakeFeasible()
 	
 	for( int r = 0; r < fNumOfRoom; ++r ){
 	  
-	  if( fAvail_EventRoom[ eventIn ][ r ] == 1 ){
+	  if( fAvail_EventRoom[ eventIn ][ r ] == 1 ){              
 	    if( fEvent_TimeRoom[ t ][ r ] == -1 )
 	      numOfEjectOut = numOfFlagRoom;
 	    else if( flagRoom[ r ] == 1 ) 
