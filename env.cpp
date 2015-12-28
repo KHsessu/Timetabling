@@ -68,7 +68,7 @@ void TEnvironment::DoIt()
 
   while( 1 ){
     tSearch->ResetSol();
-    tSearch->LS_MakeFeasible();
+    tSearch->LS_MakeFeasible();         // 内容見てるなう。
     if( tSearch->fNumOfEjectEvent == 0 )
       break;
   } 

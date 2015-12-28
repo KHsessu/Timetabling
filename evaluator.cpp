@@ -32,49 +32,62 @@ void TEvaluator::SetInstance( char* filename )
   /* ken hachikubo modify 12.12. */
   fscanf(fp, "%d %d %d %d %d", &fNumOfEvent, &fNumOfRoom, &numOfFeature, &fNumOfStudent, &fNumOfProf);
 
+  /* fAvail_EventRoom[ event ][ room ] -> 1:event can do in room 0:otherwise */
   fAvail_EventRoom = new int* [ fNumOfEvent ];
   for( int i = 0; i < fNumOfEvent; ++i )
     fAvail_EventRoom[ i ] = new int [ fNumOfRoom ];
 
+  /* [ event1 ][ event2 ] -> 1:event 1 & 2 is conflict  0:otherwise */
   fConf_EventEvent = new int* [ fNumOfEvent ];
   for( int i = 0; i < fNumOfEvent; ++i )
     fConf_EventEvent[ i ] = new int [ fNumOfEvent ];
 
+  /* [ event ][  ] -> list of student who attends the event */
   fListStudent_Event = new int* [ fNumOfEvent ];
   for( int i = 0; i < fNumOfEvent; ++i )
     fListStudent_Event[ i ] = new int [ fNumOfStudent ];
 
+  /* [ event ] -> number of student who attends the event */
   fNumOfStudent_Event = new int [ fNumOfEvent ];
 
+  /* [ event1 ][  ] -> list of event that conflicts the event1 */
   fListConfEvent_Event = new int* [ fNumOfEvent ];
   for( int e = 0; e < fNumOfEvent; ++e )
     fListConfEvent_Event[ e ] = new int [ fNumOfEvent ];
 
   /* ken hachikubo add 12.14 */
+  /* [ event ] -> 1:this event is required subject */
   fEvent_Required = new int [ fNumOfEvent ];
+  /* [ event ] -> timeslot nessesary to the event */
   fEvent_TimeRequest = new int [ fNumOfEvent ];
 
+  
   fNumOfConfEvent_Event = new int [ fNumOfEvent ];
 
+  /* S2は変更しているので要検証 */
   fDiffPenalty_S2_Insert = new int* [ fNumOfTimeInDay ];
   for( int h = 0; h < fNumOfTimeInDay; ++h )
     fDiffPenalty_S2_Insert[ h ] = new int [ fNumOfTimeInDay ];
 
   size_room = new int [ fNumOfRoom ];
 
+  /* [ stuent ][ event ] -> 1:student attends event 0:otherwise */
   studentEvent = new int* [ fNumOfStudent ];
   for( int s = 0; s < fNumOfStudent; ++s )
     studentEvent[ s ] = new int [ fNumOfEvent ];
 
   /* ken hachikubo add 12.12. */
+  /* [ professor ][ event ] -> 1:professor do event 0:otherwise */
   profEvent = new int* [ fNumOfProf ];
   for( int p = 0; p < fNumOfProf; ++p )
     profEvent[ p ] = new int [ fNumOfEvent ];
 
+  /* [ room ][ feature ] -> room has feature */
   roomFeature = new int* [ fNumOfRoom ];
   for( int r = 0; r < fNumOfRoom; ++r )
     roomFeature[ r ] = new int [ numOfFeature ];
 
+  /* [ event ][ feature ] -> event requires feature */
   eventFeature = new int* [ fNumOfEvent ];
   for( int i = 0; i < fNumOfEvent; ++i )
     eventFeature[ i ] = new int [ numOfFeature ];

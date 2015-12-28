@@ -122,6 +122,9 @@ void TSearch::LS_MakeFeasible()
     for( int h = 0; h < fNumOfEjectEvent; ++h ){
       eventIn = fListEjectEvent[ h ];                         // イジェクトリストから授業を排出
 
+
+
+      /* 連続授業の場合を後で考える */
       for( int t = 0; t < fNumOfTime; ++t ){
 	diffPenalty_S = this->DiffPenalty_S_Insert( eventIn, t );   /////// test
 	numOfFlagRoom = 0;	

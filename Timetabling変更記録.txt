@@ -36,11 +36,13 @@ operator.cpp
 fEvent_Required
 fEvent_TimeRequest
 
-現在課題
-Setinstance内
-L174~ fConfEvent_Eventの計算方法を変更
-H1制約に対して影響がある可能性、要検証
 
+2015.12.28
+evaluator.cpp search.cpp
+コメントを書きまくった
+
+現在課題
+search.cpp -> LS_Makefeasibleを読み解く
 
 
 
