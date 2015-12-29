@@ -5,10 +5,10 @@ cp env_LS.cpp env.cpp
 cp operator_ver2.h operator.h  // timetableの基本操作に関するクラス
 
 cp operator_ver2.cpp operator.cpp 
-cp search_ver2.h search.h      
+cp search_ver2.h search.h 
 // 探索手法（タブ探索）に関するクラス
 cp search_ver2.cpp search.cpp
-cp evaluator_ver2.h evaluator.h   
+cp evaluator_ver2.h evaluator.h  
 // インスタンス（問題）の情報に関するクラス
 cp evaluator_ver2.cpp evaluator.cpp
 

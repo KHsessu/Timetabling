@@ -41,6 +41,18 @@ fEvent_TimeRequest
 evaluator.cpp search.cpp
 コメントを書きまくった
 
+2015.12.29
+operator.h
+operator.cpp
+TOpertor::TransToIndi
+TOperator::CalEvaluation
+TOperator::CheckValid
+indi.h
+ペナルティS4 S5関連の変数追加(まだ実際にはペナルティに加算しないようにしている)
+
+TOperator::CalEvaluation
+S4 S5計算部分追加
+
 現在課題
 search.cpp -> LS_Makefeasibleを読み解く
 

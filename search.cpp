@@ -138,12 +138,11 @@ void TSearch::LS_MakeFeasible()
 	    flagRoom[ r ] = 0;
 	} 
 	
-	for( int r = 0; r < fNumOfRoom; ++r ){
-	  
-	  if( fAvail_EventRoom[ eventIn ][ r ] == 1 ){              
-	    if( fEvent_TimeRoom[ t ][ r ] == -1 )
+	for( int r = 0; r < fNumOfRoom; ++r ){	  
+	  if( fAvail_EventRoom[ eventIn ][ r ] == 1 ){             // その部屋が使えて 
+	    if( fEvent_TimeRoom[ t ][ r ] == -1 )                  // その時間の部屋が空いているなら
 	      numOfEjectOut = numOfFlagRoom;
-	    else if( flagRoom[ r ] == 1 ) 
+	    else if( flagRoom[ r ] == 1 )                          // H1に違反していたら
 	      numOfEjectOut = numOfFlagRoom;
 	    else 
 	      numOfEjectOut = numOfFlagRoom + 1;
@@ -158,6 +157,8 @@ void TSearch::LS_MakeFeasible()
 	    // diff = 100 * numOfEjectOut + diffPenalty_S;  // evaluation function
 	    diff = numOfEjectOut;
 	  }
+
+	  printf("%d\n",numOfEjectOut);
 	  
 	  if( diff < diffMin ){
 	    if( fNumOfIterLS > fMoved_EventTime[ eventIn ][ t ] || fNumOfEjectEvent + numOfEjectOut < tIndi_LS.fNumOfEjectEvent ){
@@ -180,7 +181,8 @@ void TSearch::LS_MakeFeasible()
       }
     }
     assert( numOfCandi != 0 );   
-
+    printf("%d\n",numOfCandi);
+    
     rr = rand() % numOfCandi;
     eventIn = candi[ 3*rr ];
     timeIn = candi[ 3*rr+1 ];

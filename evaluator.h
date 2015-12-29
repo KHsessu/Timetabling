@@ -15,12 +15,7 @@
 #include "rand.h"
 #endif
 
-/*
- * ken hachikubo add
- * fNumOfProf;
- *
- *
- */
+
 class TEvaluator {
  public:
   TEvaluator();

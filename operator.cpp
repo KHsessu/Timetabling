@@ -22,6 +22,8 @@ void TOperator::TransToIndi( TIndi& indi )
   indi.fPenalty_S1 = fPenalty_S1;
   indi.fPenalty_S2 = fPenalty_S2;
   indi.fPenalty_S3 = fPenalty_S3;
+  indi.fPenalty_S4 = fPenalty_S4; // ken hachikubo add 12.29
+  indi.fPenalty_S5 = fPenalty_S5;
   indi.fEvaluationValue = (double)fPenalty_S;  // depend on the strategy
 
   for( int e = 0; e < fNumOfEvent; ++e ){
@@ -183,7 +185,8 @@ void TOperator::CheckValid()
   int penalty_S1 = fPenalty_S1;
   int penalty_S2 = fPenalty_S2;
   int penalty_S3 = fPenalty_S3;
-
+  int penalty_S4 = fPenalty_S4;   // ken hachikubo add 12.29
+  int penalty_S5 = fPenalty_S5;
   this->CalEvaluation();
   assert( penalty_S1 == fPenalty_S1 );
   assert( penalty_S2 == fPenalty_S2 );
@@ -193,7 +196,7 @@ void TOperator::CheckValid()
 
 void TOperator::CalEvaluation()
 {
-  int penalty_H1, penalty_S1, penalty_S2, penalty_S3;
+  int penalty_H1, penalty_S1, penalty_S2, penalty_S3, penalty_S4, penalty_S5;
   int time;
   int count;
 
@@ -243,6 +246,29 @@ void TOperator::CalEvaluation()
   }
   fPenalty_S3 = penalty_S3;
 
+  // fPenalty_S4
+  for(int e = 0; e < fNumOfEvent; e++){
+    if( fTimeRoom_Event[ e ][ 0 ] < 3 && (fTimeRoom_Event[ e ][ 0 ] + fEvent_TimeRequest[ e ]) > 2 )
+	++fPenalty_S4;
+  }
+  
+  // fPenalty_S5
+  int pflag = 0;
+  for(int e1 = 0 ; e1 < fNumOfEvent; ++e1){
+    for(int e2 = e1; e2 < fNumOfEvent; ++e2){
+      for(int tr1 = 0; tr1 < fEvent_TimeRequest[ e1 ]; ++tr1){
+	for(int tr2 = 0; tr2 < fEvent_TimeRequest[ e2 ]; ++tr2){
+	  if(tr1 == tr2)
+	    pflag = 1;
+	  else
+	    pflag = 0;
+	}
+      }
+      fPenalty_S5 += pflag;
+    }
+  }
+
+  
   fPenalty_S = penalty_S1 + penalty_S2 + penalty_S3;
 }
 
