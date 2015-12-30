@@ -60,6 +60,10 @@ void TEvaluator::SetInstance( char* filename )
   fEvent_Required = new int [ fNumOfEvent ];
   /* [ event ] -> timeslot nessesary to the event */
   fEvent_TimeRequest = new int [ fNumOfEvent ];
+  /* [ prof ] [ time ] -> 1:prof can't do this event in time */
+  fProfCantDo = new int* [ fNumOfProf ];
+  for( int e = 0; e < fNumOfEvent; ++e)
+    fProfCantDo[ e ] = new int [ fNumOfTime ];
 
   
   fNumOfConfEvent_Event = new int [ fNumOfEvent ];
@@ -107,7 +111,11 @@ void TEvaluator::SetInstance( char* filename )
   for( int p = 0; p < fNumOfProf; ++p )
     for( int i = 0; i < fNumOfEvent; ++i )
       fscanf( fp, "%d", &profEvent[ p ][ i ] );
-      
+
+  for( int p = 0; p < fNumOfProf; ++p)
+    for (int t = 0; t < fNumOfTime; ++t)
+      fscanf( fp, "%d", &fProfCantDo);
+  
   for( int r = 0; r < fNumOfRoom; ++r )
     for( int f = 0; f < numOfFeature; ++f )
       fscanf( fp, "%d", &roomFeature[ r ][ f ] );

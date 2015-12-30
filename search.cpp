@@ -158,7 +158,7 @@ void TSearch::LS_MakeFeasible()
 	    diff = numOfEjectOut;
 	  }
 
-	  printf("%d\n",numOfEjectOut);
+	  //	  printf("%d\n",numOfEjectOut);
 	  
 	  if( diff < diffMin ){
 	    if( fNumOfIterLS > fMoved_EventTime[ eventIn ][ t ] || fNumOfEjectEvent + numOfEjectOut < tIndi_LS.fNumOfEjectEvent ){
@@ -181,7 +181,7 @@ void TSearch::LS_MakeFeasible()
       }
     }
     assert( numOfCandi != 0 );   
-    printf("%d\n",numOfCandi);
+    //    printf("%d\n",numOfCandi);
     
     rr = rand() % numOfCandi;
     eventIn = candi[ 3*rr ];

@@ -38,6 +38,7 @@ class TEvaluator {
   int *fNumOfConfEvent_Event; // [event] -> number of conflict event
   int *fEvent_Required;       // [event] -> 1: event is a required subject, 0:otherwise. ken hachikubo add 12.14
   int *fEvent_TimeRequest;    // [event] -> the timeslot required for event. ken hachikubo add 12.14
+  int **fProfCantDo;
   int **fDiffPenalty_S2_Insert;
 };
   
