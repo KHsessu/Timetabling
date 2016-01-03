@@ -114,7 +114,7 @@ void TEvaluator::SetInstance( char* filename )
 
   for( int p = 0; p < fNumOfProf; ++p)
     for (int t = 0; t < fNumOfTime; ++t)
-      fscanf( fp, "%d", &fProfCantDo);
+      fscanf( fp, "%d", &fProfCantDo[ p ][ t ]);
   
   for( int r = 0; r < fNumOfRoom; ++r )
     for( int f = 0; f < numOfFeature; ++f )

@@ -53,10 +53,13 @@ indi.h
 TOperator::CalEvaluation
 S4 S5計算部分追加
 
+2015.12.30
+問題を作成するプログラムmake_timを作った(動くとは言っていない)
+
 現在課題
 search.cpp -> LS_Makefeasibleを読み解く
 S4 S5がちゃんと動いているかどうか確認すること
-
+make_timが動かない newの仕様を調べる
 
 問題ファイル 例にsmall1k.tim(100 5 5 80 20)の実際の行数
 event数 room数 部屋の設備の種類 生徒数 教授数 L1
