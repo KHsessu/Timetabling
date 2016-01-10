@@ -199,12 +199,15 @@ void TOperator::CalEvaluation()
   int penalty_H1, penalty_S1, penalty_S2, penalty_S3, penalty_S4, penalty_S5;
   int time;
   int count;
-
+  double e_ave, e_day, e_diff;
 
   // fPenalty_S1
   penalty_S1 = 0;
   for( int s = 0; s < fNumOfStudent; ++s ){
     for( int d = 0; d < fNumOfDay; ++d ){
+      time = d * (fNumOfTimeInDay) +1;
+      if( fEvent_StudentTime[ s ][ time ] != -1 )
+	++penalty_S1;
       time = (d+1) * (fNumOfTimeInDay) -1;
       if( fEvent_StudentTime[ s ][ time ] != -1 )
 	++penalty_S1;
@@ -214,18 +217,23 @@ void TOperator::CalEvaluation()
 
   // fPenalty_S2
   penalty_S2 = 0;
+  count = 0;
   for( int s = 0; s < fNumOfStudent; ++s ){
-    for( int d = 0; d < fNumOfDay; ++d ){
+    for( int t = 0; t < fNumOfTime; ++t ){
+      if( fEvent_StudentTime[ s ][ t ] != -1)
+	count++;
+    }
+    e_ave = ( count / fNumOfDay );
+    for ( int d = 0; d < fNumOfDay; ++d){
       time = d * (fNumOfTimeInDay);
       count = 0;
-      for( int h = 0; h < fNumOfTimeInDay; ++h ){
-	if( fEvent_StudentTime[ s ][ time + h ] != -1 )
-	  ++count;
-	else
-	  count = 0;
-	if( count >= 3 )
-	  ++penalty_S2 ;
+      for(int h = 0; h < fNumOfTimeInDay; ++h ){
+	if( fEvent_StudentTime[ s ][ time + h] != -1 )
+	  ++e_day;
       }
+      e_diff = e_ave - e_day;
+      if( (e_diff * e_diff) > 2 )
+	penalty += (int)e_diff;	// 他のペナルティとのバランスを考える
     }
   }
   fPenalty_S2 = penalty_S2;
