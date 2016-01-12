@@ -53,6 +53,7 @@ void TOperator::Set( TEvaluator* eval )
   fNumOfEvent = eval->fNumOfEvent;                 
   fNumOfRoom = eval->fNumOfRoom;
   fNumOfStudent = eval->fNumOfStudent;
+  fNumOfProf = eval->fNumOfProf;
   fNumOfTime = eval->fNumOfTime;
   fNumOfDay = eval->fNumOfDay;
   fNumOfTimeInDay = eval->fNumOfTimeInDay;
@@ -81,6 +82,10 @@ void TOperator::Set( TEvaluator* eval )
   for( int s = 0; s < fNumOfStudent; ++s )
     fEvent_StudentTime[ s ] = new int [ fNumOfTime ];
 
+  fEvent_ProfTime = new int* [ fNumOfProf ];
+  for( int p = 0; p < fNumOfProf; ++p)
+    fEvent_ProfTime[ p ] = new int [ fNumOfTime ];
+  
   fNumOfEvent_StudentDay = new int* [ fNumOfStudent ];
   for( int s = 0; s < fNumOfStudent; ++s )
     fNumOfEvent_StudentDay[ s ] = new int [ fNumOfDay ];
@@ -228,28 +233,35 @@ void TOperator::CalEvaluation()
       time = d * (fNumOfTimeInDay);
       count = 0;
       for(int h = 0; h < fNumOfTimeInDay; ++h ){
-	if( fEvent_StudentTime[ s ][ time + h] != -1 )
+	if( fEvent_StudentTime[ s ][ time + h ] != -1 )
 	  ++e_day;
       }
       e_diff = e_ave - e_day;
       if( (e_diff * e_diff) > 2 )
-	penalty += (int)e_diff;	// 他のペナルティとのバランスを考える
+	penalty_S2 += (int)e_diff;	// 他のペナルティとのバランスを考える
     }
   }
   fPenalty_S2 = penalty_S2;
 
   // fPenalty_S3
   penalty_S3 = 0;
-  for( int s = 0; s < fNumOfStudent; ++s ){
-    for( int d = 0; d < fNumOfDay; ++d ){
+  count = 0;
+  for( int p = 0; p < fNumOfProf; ++p ){
+    for( int t = 0; t < fNumOfTime; ++t ){
+      if( fEvent_ProfTime[ p ][ t ] != -1)
+	count++;
+    }
+    e_ave = ( count / fNumOfDay );
+    for ( int d = 0; d < fNumOfDay; ++d){
       time = d * (fNumOfTimeInDay);
       count = 0;
-      for( int h = 0; h < fNumOfTimeInDay; ++h ){
-	if( fEvent_StudentTime[ s ][ time + h ] != -1 )
-	  ++count;
+      for(int h = 0; h < fNumOfTimeInDay; ++h ){
+	if( fEvent_ProfTime[ p ][ time + h ] != -1 )
+	  ++e_day;
       }
-      if( count == 1 )
-	++penalty_S3 ;
+      e_diff = e_ave - e_day;
+      if( (e_diff * e_diff) > 2 )
+	penalty_S3 += (int)e_diff;	// 他のペナルティとのバランスを考える
     }
   }
   fPenalty_S3 = penalty_S3;
@@ -387,6 +399,8 @@ void TOperator::ResetSol()
   fPenalty_S1 = 0;
   fPenalty_S2 = 0;
   fPenalty_S3 = 0;
+  fPenalty_S4 = 0;
+  fPenalty_S5 = 0;
 
   for( int e = 0; e < fNumOfEvent; ++e ){
     fTimeRoom_Event[ e ][ 0 ] = -1;

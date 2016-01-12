@@ -46,7 +46,8 @@ class TOperator {
   // Fixed variables (from eval)
   int fNumOfEvent;                 
   int fNumOfRoom;         
-  int fNumOfStudent;      
+  int fNumOfStudent;
+  int fNumOfProf;
   int fNumOfTime;         
   int fNumOfDay;       
   int fNumOfTimeInDay; 
@@ -77,6 +78,7 @@ class TOperator {
   
   // Variables for a solutsion (secondary)
   int **fEvent_StudentTime;     // [student][time] -> event
+  int **fEvent_ProfTime;	// [professor][time] -> event  ken hachikubo add 1.12
   int **fNumOfEvent_StudentDay; // [student][day] -> number of event
   int **fConf_EventTime;        // [event][time] -> eventをtimeに割付時のコンフリクト学生数
 
