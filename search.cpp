@@ -130,7 +130,7 @@ void TSearch::LS_MakeFeasible()
 
 
 
-	for( int p = 0; p < fNumOfProf_Event[ eventIn ]; ++p ){
+	for( int p = 0; p < fNumOfProf_Event[ eventIn ]; ++p ){  // H4のチェック
 	  professor = fListProf_Event[ eventIn ][ p ];
 	  if( fProfCantDo[ professor ][ t ] == 1){
 	    profflag = 1;
@@ -141,9 +141,7 @@ void TSearch::LS_MakeFeasible()
 	  continue;
 	
 
-
-
-
+	// for( int tr = 0; tr < fEvent_TimeRequest[ eventIn ]; ++tr ){        // for trここから?
 	
 	diffPenalty_S = this->DiffPenalty_S_Insert( eventIn, t );   /////// test
 	numOfFlagRoom = 0;	
@@ -178,6 +176,9 @@ void TSearch::LS_MakeFeasible()
 	    printf("%d\n",diff);
 	  }
 
+	  // }         // for tr ここまで?
+
+	
 	  //	  printf("%d\n",numOfEjectOut);
 	  
 	  if( diff < diffMin ){
