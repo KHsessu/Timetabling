@@ -47,8 +47,15 @@ void TEvaluator::SetInstance( char* filename )
   for( int i = 0; i < fNumOfEvent; ++i )
     fListStudent_Event[ i ] = new int [ fNumOfStudent ];
 
+  fListProf_Event = new int* [ fNumOfEvent ];
+  for( int i = 0; i < fNumOfEvent; ++i )
+    fListStudent_Event[ i ] = new int [ fNumOfProf ];
+  
   /* [ event ] -> number of student who attends the event */
   fNumOfStudent_Event = new int [ fNumOfEvent ];
+
+  /* [ event ] -> number of prof who attends the event */
+  fNumOfProf_Event = new int [ fNumOfEvent ];
 
   /* [ event1 ][  ] -> list of event that conflicts the event1 */
   fListConfEvent_Event = new int* [ fNumOfEvent ];
@@ -62,8 +69,8 @@ void TEvaluator::SetInstance( char* filename )
   fEvent_TimeRequest = new int [ fNumOfEvent ];
   /* [ prof ] [ time ] -> 1:prof can't do this event in time */
   fProfCantDo = new int* [ fNumOfProf ];
-  for( int e = 0; e < fNumOfEvent; ++e)
-    fProfCantDo[ e ] = new int [ fNumOfTime ];
+  for( int p = 0; p < fNumOfProf; ++p)
+    fProfCantDo[ p ] = new int [ fNumOfTime ];
 
   
   fNumOfConfEvent_Event = new int [ fNumOfEvent ];
@@ -163,6 +170,18 @@ void TEvaluator::SetInstance( char* filename )
     }
   }
 
+    for( int i = 0; i < fNumOfEvent; ++i ){
+    fNumOfProf_Event[ i ] = 0;
+    for( int p = 0; p < fNumOfProf; ++p ){
+      
+      if(  profEvent[ p ][ i ] == 1 ){
+	fListProf_Event[ i ][ fNumOfProf_Event[ i ] ] = p;
+	++fNumOfProf_Event[ i ];
+      }
+    }
+  }
+
+
   for( int i = 0; i < fNumOfEvent; ++i ){
     for( int r = 0; r < fNumOfRoom; ++r ){
       fAvail_EventRoom[ i ][ r ] = 0; 
@@ -249,7 +268,7 @@ void TEvaluator::SetInstance( char* filename )
       }
     }
   }
-  printf("Count2Prof = %d \n", count);
+  printf("Count2Prof + Count2Student = %d \n", count);
 
   count = 0;
   for( int i = 0; i < fNumOfEvent; ++i ){

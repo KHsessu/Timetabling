@@ -54,11 +54,14 @@ class TOperator {
   int **fAvail_EventRoom; 
   int **fConf_EventEvent; 
   int **fListStudent_Event;
+  int **fListProf_Event;
   int *fNumOfStudent_Event;
+  int *fNumOfProf_Event;
   int ** fListConfEvent_Event;
   int * fNumOfConfEvent_Event;
   int *fEvent_Required;              // ken hachikubo add 12.15
   int *fEvent_TimeRequest;           // ken hachikubo add 12.15
+  int **fProfCantDo;
   int **fDiffPenalty_S2_Insert;
 
   // Variables for a solutsion (primary)

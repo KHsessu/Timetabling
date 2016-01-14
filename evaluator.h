@@ -33,7 +33,9 @@ class TEvaluator {
   int **fAvail_EventRoom;    // [event][room] -> 1: event can be assigned to room, 0: otherwise 
   int **fConf_EventEvent;    // [event1][event2] -> number of students in both event1 and event2
   int **fListStudent_Event;  // [event][] -> student list in event
+  int **fListProf_Event;
   int *fNumOfStudent_Event;  // [event] -> number of studnts in event
+  int *fNumOfProf_Event;
   int **fListConfEvent_Event; // [event] -> conflict event list
   int *fNumOfConfEvent_Event; // [event] -> number of conflict event
   int *fEvent_Required;       // [event] -> 1: event is a required subject, 0:otherwise. ken hachikubo add 12.14

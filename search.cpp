@@ -99,7 +99,8 @@ void TSearch::LS_MakeFeasible()
   int flagRoom[ fNumOfRoom ]; // 1: H1に違反する 0: 違反しない
   int numOfFlagRoom;
   int diffPenalty_S;
-
+  int professor;
+  int profflag;
   if( fNumOfEjectEvent == 0 )
     return;
 
@@ -126,26 +127,44 @@ void TSearch::LS_MakeFeasible()
 
       /* 連続授業の場合を後で考える */
       for( int t = 0; t < fNumOfTime; ++t ){
+
+
+
+	for( int p = 0; p < fNumOfProf_Event[ eventIn ]; ++p ){
+	  professor = fListProf_Event[ eventIn ][ p ];
+	  if( fProfCantDo[ professor ][ t ] == 1){
+	    profflag = 1;
+	    break;
+	  }
+	}
+	if( profflag == 1 )
+	  continue;
+	
+
+
+
+
+	
 	diffPenalty_S = this->DiffPenalty_S_Insert( eventIn, t );   /////// test
 	numOfFlagRoom = 0;	
 	for( int r = 0; r < fNumOfRoom; ++r ){
 	  event = fEvent_TimeRoom[ t ][ r ];                        // 授業の競合チェック
-	  if( event != -1 && fConf_EventEvent[ eventIn ][ event ] != 0 ){ // 競合していれば
-	    flagRoom[ r ] = 1;  // eject 授業を入れる部屋の候補から外す
+	  if( event != -1 && fConf_EventEvent[ eventIn ][ event ] != 0 ){ // その時間に授業が入ってる かつ 授業が競合
+	    flagRoom[ r ] = 1;  // この時間その部屋は使えない
 	    ++numOfFlagRoom;
 	  }
 	  else 
 	    flagRoom[ r ] = 0;
 	} 
-	
+	printf("%d   ",numOfFlagRoom);
 	for( int r = 0; r < fNumOfRoom; ++r ){	  
 	  if( fAvail_EventRoom[ eventIn ][ r ] == 1 ){             // その部屋が使えて 
-	    if( fEvent_TimeRoom[ t ][ r ] == -1 )                  // その時間の部屋が空いているなら
+	    if( fEvent_TimeRoom[ t ][ r ] == -1 )                  // イベントが割り当てられていない
 	      numOfEjectOut = numOfFlagRoom;
-	    else if( flagRoom[ r ] == 1 )                          // H1に違反していたら
+	    else if( flagRoom[ r ] == 1 )                          // 部屋が他の授業と被って使えない
 	      numOfEjectOut = numOfFlagRoom;
 	    else 
-	      numOfEjectOut = numOfFlagRoom + 1;
+	      numOfEjectOut = numOfFlagRoom + 1;                   // その時間部屋にイベントが割り当てられてるけど部屋は使える 
 	  }
 	  else 
 	    numOfEjectOut = 99999999 + 10;
@@ -156,6 +175,7 @@ void TSearch::LS_MakeFeasible()
 	    --numOfEjectOut;     // EventInを考慮
 	    // diff = 100 * numOfEjectOut + diffPenalty_S;  // evaluation function
 	    diff = numOfEjectOut;
+	    printf("%d\n",diff);
 	  }
 
 	  //	  printf("%d\n",numOfEjectOut);
