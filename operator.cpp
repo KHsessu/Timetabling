@@ -61,9 +61,13 @@ void TOperator::Set( TEvaluator* eval )
   fConf_EventEvent = eval->fConf_EventEvent;
   fListStudent_Event = eval->fListStudent_Event;
   fNumOfStudent_Event = eval->fNumOfStudent_Event;
+  fListProf_Event = eval->fListProf_Event;
+  fNumOfProf_Event = eval->fNumOfProf_Event;
   fListConfEvent_Event = eval->fListConfEvent_Event;
   fNumOfConfEvent_Event = eval->fNumOfConfEvent_Event;
   fDiffPenalty_S2_Insert = eval->fDiffPenalty_S2_Insert;
+  fEvent_Required = eval->fEvent_Required;              // ken hachikubo add 12.15
+  fEvent_TimeRequest = eval->fEvent_TimeRequest;           // ken hachikubo add 12.15
 
   // Varialbes for a solutsion (primary)
   fTimeRoom_Event = new int* [ fNumOfEvent ];
@@ -222,6 +226,44 @@ void TOperator::CalEvaluation()
 
   // fPenalty_S2
   penalty_S2 = 0;
+  for( int s = 0; s < fNumOfStudent; ++s ){
+    for( int d = 0; d < fNumOfDay; ++d ){
+      time = d * (fNumOfTimeInDay);
+      count = 0;
+      for( int h = 0; h < fNumOfTimeInDay; ++h ){
+	if( fEvent_StudentTime[ s ][ time + h ] != -1 )
+	  ++count;
+	else
+	  count = 0;
+	if( count >= 3 )
+	  ++penalty_S2 ;
+      }
+    }
+  }
+  fPenalty_S2 = penalty_S2;
+
+  // fPenalty_S3
+  penalty_S3 = 0;
+  for( int s = 0; s < fNumOfStudent; ++s ){
+    for( int d = 0; d < fNumOfDay; ++d ){
+      time = d * (fNumOfTimeInDay);
+      count = 0;
+      for( int h = 0; h < fNumOfTimeInDay; ++h ){
+	if( fEvent_StudentTime[ s ][ time + h ] != -1 )
+	  ++count;
+      }
+      if( count == 1 )
+	++penalty_S3 ;
+    }
+  }
+  fPenalty_S3 = penalty_S3;
+
+  
+  /*  new calevaluation S2 S3 S4 S5*/
+
+  /*
+  // fPenalty_S2
+  penalty_S2 = 0;
   count = 0;
   for( int s = 0; s < fNumOfStudent; ++s ){
     for( int t = 0; t < fNumOfTime; ++t ){
@@ -287,7 +329,7 @@ void TOperator::CalEvaluation()
       fPenalty_S5 += pflag;
     }
   }
-
+  */
   
   fPenalty_S = penalty_S1 + penalty_S2 + penalty_S3;
 }
@@ -525,9 +567,11 @@ void TOperator::Insert( int event, int time, int room, int flag )
   assert( 0 <= time < fNumOfTime );
   assert( 0 <= room < fNumOfRoom );
   assert( fAvail_EventRoom[ event ][ room ] == 1 );
-  assert( fEvent_TimeRoom[ time ][ room ] == -1 );
+  assert( 0 <= ( time % fNumOfTimeInDay ) + fEvent_TimeRequest[ event ] < fNumOfTimeInDay );
+  for( int tr = 0; tr < fEvent_TimeRequest[ event ]; ++tr ){//
+    assert( fEvent_TimeRoom[ time + tr ][ room ] == -1 );//
+  }//
   assert( fTimeRoom_Event[ event ][ 0 ] == -1 ); 
-
   for( int r = 0; r < fNumOfRoom; ++r ){ // partial feasibility
     event1 = fEvent_TimeRoom[ time ][ r ];
     if( event1 != -1 && fConf_EventEvent[ event ][ event1 ] != 0 )
@@ -536,8 +580,9 @@ void TOperator::Insert( int event, int time, int room, int flag )
 
   fTimeRoom_Event[ event ][ 0 ] = time;
   fTimeRoom_Event[ event ][ 1 ] = room;
-  fEvent_TimeRoom[ time ][ room ] = event;
-
+  for(int tr = 0; tr < fEvent_TimeRequest[ event ]; ++tr){//
+    fEvent_TimeRoom[ time + tr ][ room ] = event;//
+  }//
   fListEjectEvent[ fInvEjectEvent[ event ] ] = fListEjectEvent[ fNumOfEjectEvent-1 ]; 
   fInvEjectEvent[ fListEjectEvent[ fNumOfEjectEvent-1 ] ] = fInvEjectEvent[ event ];
   fInvEjectEvent[ event ] = -1;

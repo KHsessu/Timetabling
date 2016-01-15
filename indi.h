@@ -19,7 +19,6 @@ public:
   bool ReadFrom( FILE *fp ); // fileから読込
   bool WriteTo( FILE *fp ) const; // fileへ書出し
 
-
   int fNumOfEvent;         // イベント数
   int fNumOfEjectEvent;    // 未割り付けイベント数
   int **fTimeRoom_Event;   // [timeslot][room] -> event
