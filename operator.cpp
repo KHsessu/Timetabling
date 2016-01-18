@@ -491,8 +491,9 @@ void TOperator::Eject( int event, int flag )
 
   time = fTimeRoom_Event[ event ][ 0 ];
   room = fTimeRoom_Event[ event ][ 1 ];
-  fEvent_TimeRoom[ time ][ room ] = -1;
-
+  for( int tr = 0; tr < fEvent_TimeRequest[ event ]; ++tr ){
+  fEvent_TimeRoom[ time + tr ][ room ] = -1;
+  }
   fTimeRoom_Event[ event ][ 0 ] = -1;
   fTimeRoom_Event[ event ][ 1 ] = -1;
 
@@ -569,20 +570,25 @@ void TOperator::Insert( int event, int time, int room, int flag )
   assert( fAvail_EventRoom[ event ][ room ] == 1 );
   assert( 0 <= ( time % fNumOfTimeInDay ) + fEvent_TimeRequest[ event ] < fNumOfTimeInDay );
   for( int tr = 0; tr < fEvent_TimeRequest[ event ]; ++tr ){//
-    assert( fEvent_TimeRoom[ time + tr ][ room ] == -1 );//
+    assert( fEvent_TimeRoom[ time + tr ][ room ] == -1 );//   
   }//
   assert( fTimeRoom_Event[ event ][ 0 ] == -1 ); 
   for( int r = 0; r < fNumOfRoom; ++r ){ // partial feasibility
     event1 = fEvent_TimeRoom[ time ][ r ];
-    if( event1 != -1 && fConf_EventEvent[ event ][ event1 ] != 0 )
+    if( event1 != -1 && fConf_EventEvent[ event ][ event1 ] != 0 ){
+      printf("error event%d & event%d is conflict\n",event, event1);
       assert( 1 == 2 );
+    }
   }
 
+  
   fTimeRoom_Event[ event ][ 0 ] = time;
   fTimeRoom_Event[ event ][ 1 ] = room;
   for(int tr = 0; tr < fEvent_TimeRequest[ event ]; ++tr){//
     fEvent_TimeRoom[ time + tr ][ room ] = event;//
-  }//
+  } //
+
+  
   fListEjectEvent[ fInvEjectEvent[ event ] ] = fListEjectEvent[ fNumOfEjectEvent-1 ]; 
   fInvEjectEvent[ fListEjectEvent[ fNumOfEjectEvent-1 ] ] = fInvEjectEvent[ event ];
   fInvEjectEvent[ event ] = -1;

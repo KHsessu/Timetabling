@@ -235,7 +235,7 @@ void TSearch::LS_MakeFeasible()
 	this->Eject( event, 1 );
     }
     }
-    printf("Insert( %d %d %d)\n", eventIn, timeIn, roomIn);
+    //    printf("Insert( %d %d %d)\n", eventIn, timeIn, roomIn);
     this->Insert( eventIn, timeIn, roomIn, 1 );    
     //    assert( tmp + diffMin == fNumOfEjectEvent ); // for check
     //}
@@ -249,6 +249,13 @@ void TSearch::LS_MakeFeasible()
     // break;
 
     this->CheckValid(); 
+  }
+
+  for( int r = 0; r < fNumOfRoom; ++r ){
+    for( int t = 0; t < fNumOfTime; ++t ){
+      printf("%3d ",fEvent_TimeRoom[ t ][ r ]);
+    }
+	printf("\n");
   }
   this->TransToIndi( tIndi_LS );  
 }
@@ -1057,6 +1064,7 @@ void TSearch::LS_Relocation_Swap_Extend()
 {
   int eventEj, timeEj, roomEj;
   int event, time, room;
+  int professor;
   int penalty_S_before, penalty_S_after;
   int penalty_S3_before, penalty_S3_after;
   int diff, diffMin;
@@ -1137,27 +1145,37 @@ void TSearch::LS_Relocation_Swap_Extend()
       this->Eject( eventEj, 0 );
       
       for( int t = 0; t < fNumOfTime; ++t ){
-
+	if( (t % fNumOfTimeInDay) + fEvent_TimeRequest[ eventEj ] -1 >= fNumOfTimeInDay ) // check H6
+	  goto EEE1;
+	
 	// if( fConf_EventTime[ eventEj ][ t ] != 0 || t == timeEj ){ // R0
 	if( fConf_EventTime[ eventEj ][ t ] != 0 && t != timeEj ){  // equevalent to ver1 (R1)
 	  goto EEE1;
 	}
 
+	for( int p = 0; p < fNumOfProf_Event[ eventEj ]; ++p ){
+	  professor = fListProf_Event[ eventEj ][ p ];
+	  for(int tr = 0; tr < fEvent_TimeRequest[ eventEj ]; ++tr ){
+	    if( fProfCantDo[ professor ][ t + tr ] == 1)               // check H5 
+	      goto EEE1;
+	  }
+	}
+	
 	// diff = 999999999;
-	numCandiRoomIn = 0;
+	numCandiRoomIn = 0;	                         //入れる部屋を探す 
 	for( int r = 0; r < fNumOfRoom; ++r ){
 	  if( fAvail_EventRoom[ eventEj ][ r ] == 1 && fEvent_TimeRoom[ t ][ r ] == -1 )
 	    if( t != timeEj || r != roomEj )
 	      candiRoomIn[ numCandiRoomIn++ ] = r;
 	}
 
-	if( numCandiRoomIn == 0 )
+	if( numCandiRoomIn == 0 ) // なかったらパス
 	  goto EEE1;
 
 	diff = this->DiffPenalty_S_Insert( eventEj, t ) + fPenalty_S - penalty_S_before; 
 	// ++count1;
 
-	roomIn = candiRoomIn[ rand() % numCandiRoomIn ];
+	roomIn = candiRoomIn[ rand() % numCandiRoomIn ];              // 入れる部屋からランダムに選ぶ
 	
 	if( diff < diffMin ){
 	  //if( fNumOfIterLS > fMoved_EventTime[ eventEj ][ t ] || penalty_S_before + diff < tIndi_LS.fPenalty_S ){

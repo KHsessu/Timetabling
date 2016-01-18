@@ -77,7 +77,7 @@ void TEnvironment::DoIt()
   // tSearch->LS_Relocation();
   // tSearch->LS_Relocation_Swap();
 
-  //  tSearch->LS_Relocation_Swap_Extend();          //書記解のテストのときはここをコメントアウト
+  tSearch->LS_Relocation_Swap_Extend();          //書記解のテストのときはここをコメントアウト
 
   //  tSearch->QuasiGES();
 
