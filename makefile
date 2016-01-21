@@ -8,8 +8,10 @@ jikken: main.cpp env.cpp evaluator.cpp indi.cpp operator.cpp search.cpp rand.cpp
 
 
 run: jikken.exe
-	./jikken.exe 1 DST medium1.tim 1 10 100000
-	./jikken.exe  1 DST medium5.tim 1 2 100000
+	./jikken.exe 1 DST small1k.tim 1 10 100000
+
+test: jikken.exe
+	./jikken.exe 1 DST small1k.tim 1 10 1
 
 dclean:
 	rm -f *Result

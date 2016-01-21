@@ -491,8 +491,10 @@ void TOperator::Eject( int event, int flag )
 
   time = fTimeRoom_Event[ event ][ 0 ];
   room = fTimeRoom_Event[ event ][ 1 ];
-  for( int tr = 0; tr < fEvent_TimeRequest[ event ]; ++tr ){
-  fEvent_TimeRoom[ time + tr ][ room ] = -1;
+  
+  for( int tr = 0; tr < fEvent_TimeRequest[ event ]; ++tr ){//
+    assert(fEvent_TimeRoom[ time + tr ][ room ] == event);//
+    fEvent_TimeRoom[ time + tr ][ room ] = -1;//
   }
   fTimeRoom_Event[ event ][ 0 ] = -1;
   fTimeRoom_Event[ event ][ 1 ] = -1;
@@ -510,20 +512,23 @@ void TOperator::Eject( int event, int flag )
     }
   }
   
-  day = time / fNumOfTimeInDay;  
+  day = time / fNumOfTimeInDay;
+  /*
   for( int k = 0; k < fNumOfStudent_Event[ event ]; ++k ){
     // fNumOfEvent_StudentDay;
     student = fListStudent_Event[ event ][ k ];
-    assert( fEvent_StudentTime[ student ][ time ] != -1 );
-    fEvent_StudentTime[ student ][ time ] = -1;
+    for( int tr = 0; tr < fEvent_TimeRequest[ event ]; ++tr ){//
+      assert( fEvent_StudentTime[ student ][ time + tr ] != -1 );//
+      fEvent_StudentTime[ student ][ time + tr ] = -1;//
     --fNumOfEvent_StudentDay[ student ][ day ];
+    }
     
     // fPenalty_S3;
+    
     if( fNumOfEvent_StudentDay[ student ][ day ] == 1 )
       ++fPenalty_S3;
-    else if( fNumOfEvent_StudentDay[ student ][ day ] == 0 )
-      --fPenalty_S3;
-
+    else --fPenalty_S3;
+    
     // fPenalty_S2;
     time_s = day * fNumOfTimeInDay;        // start time of the day
     time_e = time_s + fNumOfTimeInDay - 1; // end time of the day
@@ -551,7 +556,7 @@ void TOperator::Eject( int event, int flag )
   slot =  time % fNumOfTimeInDay; 
   if( slot == fNumOfTimeInDay - 1 )
     fPenalty_S1 -= fNumOfStudent_Event[ event ];
-
+  */
   fPenalty_S = fPenalty_S1 + fPenalty_S2 + fPenalty_S3;
 }
 
@@ -605,20 +610,23 @@ void TOperator::Insert( int event, int time, int room, int flag )
     }
   }
 
-  day = time / fNumOfTimeInDay;  
+  day = time / fNumOfTimeInDay;
+  /*
   for( int k = 0; k < fNumOfStudent_Event[ event ]; ++k ){
     // fNumOfEvent_StudentDay;
     student = fListStudent_Event[ event ][ k ];
-    assert( fEvent_StudentTime[ student ][ time ] == -1 );
-    fEvent_StudentTime[ student ][ time ] = event;
+    for( int tr = 0; tr < fEvent_TimeRequest[ event ]; ++tr ){//
+      assert( fEvent_StudentTime[ student ][ time + tr ] == -1 );//
+      fEvent_StudentTime[ student ][ time + tr ] = event;//
     ++fNumOfEvent_StudentDay[ student ][ day ];
-
+    }//
+        
     // fPenalty_S3;
+    
     if( fNumOfEvent_StudentDay[ student ][ day ] == 1 )
       ++fPenalty_S3;
-    else if( fNumOfEvent_StudentDay[ student ][ day ] == 2 )
-      --fPenalty_S3;
-
+    else --fPenalty_S3;
+    
     // fPenalty_S2;
     time_s = day * fNumOfTimeInDay;        // start time of the day
     time_e = time_s + fNumOfTimeInDay - 1; // end time of the day
@@ -646,7 +654,7 @@ void TOperator::Insert( int event, int time, int room, int flag )
   slot =  time % fNumOfTimeInDay; 
   if( slot == fNumOfTimeInDay - 1 )
     fPenalty_S1 += fNumOfStudent_Event[ event ];
-
+  */
   fPenalty_S = fPenalty_S1 + fPenalty_S2 + fPenalty_S3;
 
 
