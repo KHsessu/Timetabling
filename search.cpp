@@ -250,8 +250,14 @@ void TSearch::LS_MakeFeasible()
 
     this->CheckValid(); 
   }
+  
   printf("make sol\n");
+  printf("r\\t ");
+  for(int t = 0; t < fNumOfTime; ++t)
+    printf("%3d ",t);
+  printf("\n");
   for( int r = 0; r < fNumOfRoom; ++r ){
+    printf("%3d ",r);
     for( int t = 0; t < fNumOfTime; ++t ){
       printf("%3d ",fEvent_TimeRoom[ t ][ r ]);
     }
@@ -1074,6 +1080,7 @@ void TSearch::LS_Relocation_Swap_Extend()
   int event1, time1, room1, event2, time2, room2;
   int numCandiRoomIn1, numCandiRoomIn2, numCandiRoomIn;
   int candiRoomIn1[ fNumOfRoom ], candiRoomIn2[ fNumOfRoom ], candiRoomIn[ fNumOfRoom ];
+  int roomin1, roomin2;
   int roomIn1, roomIn2, roomIn;
   int moved_event[ fNumOfEvent ];
   int listEvent1[ fNumOfEvent ];
@@ -1137,6 +1144,7 @@ void TSearch::LS_Relocation_Swap_Extend()
       // Relocation (start)
       for( int i = 0; i < numOfActiveEvent; ++i ){ 
         eventEj = listEvent1[ i ];
+        //        printf("eventEj = %d\n",eventEj);        // check
         timeEj = fTimeRoom_Event[ eventEj ][ 0 ];
         roomEj = fTimeRoom_Event[ eventEj ][ 1 ];
         if( timeEj == -1 )
@@ -1215,6 +1223,7 @@ void TSearch::LS_Relocation_Swap_Extend()
         room1 = fTimeRoom_Event[ event1 ][ 1 ];
         for( int e2 = 0; e2 < fNumOfEvent; ++e2 ){
           event2 = e2;
+          //   printf("event %d and %d Swap\n", event1, event2);      // check
           time2 = fTimeRoom_Event[ event2 ][ 0 ];
           room2 = fTimeRoom_Event[ event2 ][ 1 ];
           if( time1 == -1 || time2 == -1 )   // enpty eventが存在している時のみ必要
@@ -1252,31 +1261,124 @@ void TSearch::LS_Relocation_Swap_Extend()
           if( (time1 % fNumOfTimeInDay) + fEvent_TimeRequest[ event2 ] -1 >= fNumOfTimeInDay ) // check H6
             goto FFF0;
 
-          //ここの条件式を多時限講義に対応させること//////////////////////////////////////////////////////////////////////////////////////////////          
+          //ここの条件式を多時限講義に対応させること//////////////////////////////////////////////////////////////////////////////////////////////
+          int roomcount;
           numCandiRoomIn2 = 0;
           for( int r = 0; r < fNumOfRoom; ++r ){
-            event = fEvent_TimeRoom[ time2 ][ r ];
-            if( (event == event2 || event == -1) && fAvail_EventRoom[ event1 ][ r ] == 1 )
+            roomcount = 0;
+            for( int tr = 0; tr <fEvent_TimeRequest[ event1 ]; ++tr){
+              event = fEvent_TimeRoom[ time2 + tr ][ r ];
+              if( (event == event2 || event == -1) && fAvail_EventRoom[ event1 ][ r ] == 1 )
+                roomcount = 1;
+              else{
+                roomcount = 0;
+                break;
+              }
+            }
+            if( roomcount != 0)
               candiRoomIn2[ numCandiRoomIn2++ ] = r;
           }
           numCandiRoomIn1 = 0;
           for( int r = 0; r < fNumOfRoom; ++r ){
-            event = fEvent_TimeRoom[ time1 ][ r ];
-            if( (event == event1 || event == -1) && fAvail_EventRoom[ event2 ][ r ] == 1 )
+            roomcount = 0;
+            for( int tr = 0; tr < fEvent_TimeRequest[ event2 ]; ++tr ){
+              event = fEvent_TimeRoom[ time1 + tr ][ r ];
+              if( (event == event1 || event == -1) && fAvail_EventRoom[ event2 ][ r ] == 1 )
+                roomcount = 1;
+              else{
+                roomcount = 0;
+                break;
+              }
+            }
+            if( roomcount != 0 )
               candiRoomIn1[ numCandiRoomIn1++ ] = r;
           }
-        
+
           if( numCandiRoomIn1 == 0 || numCandiRoomIn2 == 0 )
             goto FFF0; 
-        
-          roomIn1 = candiRoomIn1[ rand() % numCandiRoomIn1 ];
-          roomIn2 = candiRoomIn2[ rand() % numCandiRoomIn2 ];
-        
+
+          roomin1 = rand() % numCandiRoomIn1;
+          roomin2 = rand() % numCandiRoomIn2;
+          roomIn1 = candiRoomIn1[ roomin1 ];
+          roomIn2 = candiRoomIn2[ roomin2 ];
+          /* 複数授業のときにインサートでエラーを起こさないように */
+          int abs_time;
+          abs_time = abs(time1 - time2);
+          if(abs_time < fEvent_TimeRequest[ event1 ] || abs_time < fEvent_TimeRequest[ event2 ]){ // 2つの多時限授業が互いに影響するほど近い時
+            if( roomIn1 == roomIn2 ){                                                             // 部屋が一緒だとインサートでエラーを起こすので部屋を変える
+                printf("ncr1 %d    ncr2 %d\n",numCandiRoomIn1,numCandiRoomIn2);
+              for( int nr; nr < numCandiRoomIn1; ++nr )
+                printf("candiroomin1 %d ",candiRoomIn1[ nr ]);
+              for( int nr; nr < numCandiRoomIn2; ++nr )
+              printf("candiroomin2 %d\n",candiRoomIn2[ nr ]);
+              
+              if( numCandiRoomIn1 == 1 && numCandiRoomIn2 == 1){
+                goto FFF0;
+              }else if( numCandiRoomIn1 > numCandiRoomIn2 ){
+                roomIn1 = candiRoomIn1[ (roomin1 + 1) % numCandiRoomIn1 ];
+                printf("roomIn1 change %d\n",roomIn1);
+              }else{
+                roomIn2 = candiRoomIn2[ (roomin2 + 1) % numCandiRoomIn2 ];
+                printf("roomIn2 change %d\n",roomIn2);
+              }
+            }
+          }
+          
+
+          
+          printf("eject event%d time%d room%d\n",event1,time1,room1);
           this->Eject( event1, 0 );
+ printf("r\\t ");
+  for(int t = 0; t < fNumOfTime; ++t)
+    printf("%3d ",t);
+  printf("\n");
+  for( int r = 0; r < fNumOfRoom; ++r ){
+    printf("%3d ",r);
+    for( int t = 0; t < fNumOfTime; ++t ){
+      printf("%3d ",fEvent_TimeRoom[ t ][ r ]);
+    }
+	printf("\n");
+  }          
+  printf("eject event%d time%d room%d\n",event2,time2,room2);
           this->Eject( event2, 0 );
-        
+           printf("r\\t ");
+  for(int t = 0; t < fNumOfTime; ++t)
+    printf("%3d ",t);
+  printf("\n");
+  for( int r = 0; r < fNumOfRoom; ++r ){
+    printf("%3d ",r);
+    for( int t = 0; t < fNumOfTime; ++t ){
+      printf("%3d ",fEvent_TimeRoom[ t ][ r ]);
+    }
+	printf("\n");
+  }
+  printf("insert event%d time%d room%d \n",event1,time2,roomIn2);
           this->Insert( event1, time2, roomIn2, 0 );// 怪しい
+           printf("r\\t ");
+  for(int t = 0; t < fNumOfTime; ++t)
+    printf("%3d ",t);
+  printf("\n");
+  for( int r = 0; r < fNumOfRoom; ++r ){
+    printf("%3d ",r);
+    for( int t = 0; t < fNumOfTime; ++t ){
+      printf("%3d ",fEvent_TimeRoom[ t ][ r ]);
+    }
+	printf("\n");
+  }
+  printf("insert event%d time%d room%d \n",event2,time1,roomIn1);
           this->Insert( event2, time1, roomIn1, 0 );//
+           printf("r\\t ");
+  for(int t = 0; t < fNumOfTime; ++t)
+    printf("%3d ",t);
+  printf("\n");
+  for( int r = 0; r < fNumOfRoom; ++r ){
+    printf("%3d ",r);
+    for( int t = 0; t < fNumOfTime; ++t ){
+      printf("%3d ",fEvent_TimeRoom[ t ][ r ]);
+    }
+	printf("\n");
+  }
+          printf("kari\n");
           diff = fPenalty_S - penalty_S_before; 
           // ++count2;
         
@@ -1301,7 +1403,6 @@ void TSearch::LS_Relocation_Swap_Extend()
               ++numOfCandi;
             }
           }
-        
           this->Eject( event1, 0 );
           this->Eject( event2, 0 );
           this->Insert( event1, time1, room1, 0 );
@@ -1370,6 +1471,19 @@ void TSearch::LS_Relocation_Swap_Extend()
     }
   
   this->TransFromIndi( tIndi_LS );
+
+  
+ printf("r\\t ");
+  for(int t = 0; t < fNumOfTime; ++t)
+    printf("%3d ",t);
+  printf("\n");
+  for( int r = 0; r < fNumOfRoom; ++r ){
+    printf("%3d ",r);
+    for( int t = 0; t < fNumOfTime; ++t ){
+      printf("%3d ",fEvent_TimeRoom[ t ][ r ]);
+    }
+	printf("\n");
+  }
   
   // printf( "count = %d %d %d\n", count1, count2, countTest );
   // fclose( fp );
