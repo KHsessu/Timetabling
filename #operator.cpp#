@@ -200,6 +200,7 @@ void TOperator::CheckValid()
   assert( penalty_S1 == fPenalty_S1 );
   assert( penalty_S2 == fPenalty_S2 );
   assert( penalty_S3 == fPenalty_S3 );
+  assert( penalty_S4 == fPenalty_S4 );
   assert( penalty_S1 + penalty_S2 + penalty_S3 + penalty_S4 + penalty_S5 == fPenalty_S );
 }
 
