@@ -29,11 +29,13 @@ class TEvaluator {
   int fNumOfTime;    // Number of timeslot
   int fNumOfDay;     // Number of days
   int fNumOfProf;    // Number of professor   ken hachikubo add 12.12
+  int fNumOfRequiredEvent;
   int fNumOfTimeInDay;       // Number of timeslots in a day
   int **fAvail_EventRoom;    // [event][room] -> 1: event can be assigned to room, 0: otherwise 
   int **fConf_EventEvent;    // [event1][event2] -> number of students in both event1 and event2
   int **fListStudent_Event;  // [event][] -> student list in event
   int **fListProf_Event;
+  int *fListRequiredEvent;
   int *fNumOfStudent_Event;  // [event] -> number of studnts in event
   int *fNumOfProf_Event;
   int **fListConfEvent_Event; // [event] -> conflict event list

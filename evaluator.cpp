@@ -103,6 +103,8 @@ void TEvaluator::SetInstance( char* filename )
   for( int i = 0; i < fNumOfEvent; ++i )
     eventFeature[ i ] = new int [ numOfFeature ];
 
+  /* List of  RequiredEvent */
+  fListRequiredEvent = new int [ fNumOfEvent ];
   
   
   /////////* read file *////////
@@ -282,6 +284,12 @@ void TEvaluator::SetInstance( char* filename )
   }
   printf( "Count3 = %d \n", count );
 
+  fNumOfRequiredEvent = 0;
+  for( int i = 0; i < fNumOfEvent; ++i ){
+    if( fEvent_Required[ i ] == 1 )
+      fListRequiredEvent[ fNumOfRequiredEvent++ ] = i;
+  }
+  
   //////////////////////////////////
   delete [] size_room;
 

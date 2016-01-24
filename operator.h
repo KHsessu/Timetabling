@@ -49,8 +49,9 @@ class TOperator {
   int fNumOfStudent;
   int fNumOfProf;
   int fNumOfTime;         
-  int fNumOfDay;       
-  int fNumOfTimeInDay; 
+  int fNumOfDay;
+  int fNumOfRequiredEvent;
+  int fNumOfTimeInDay;
   int **fAvail_EventRoom; 
   int **fConf_EventEvent; 
   int **fListStudent_Event;
@@ -61,6 +62,7 @@ class TOperator {
   int * fNumOfConfEvent_Event;
   int *fEvent_Required;              // ken hachikubo add 12.15
   int *fEvent_TimeRequest;           // ken hachikubo add 12.15
+  int *fListRequiredEvent;
   int **fProfCantDo;
   int **fDiffPenalty_S2_Insert;
 

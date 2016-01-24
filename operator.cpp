@@ -57,6 +57,7 @@ void TOperator::Set( TEvaluator* eval )
   fNumOfTime = eval->fNumOfTime;
   fNumOfDay = eval->fNumOfDay;
   fNumOfTimeInDay = eval->fNumOfTimeInDay;
+  fNumOfRequiredEvent = eval->fNumOfRequiredEvent;
   fAvail_EventRoom = eval->fAvail_EventRoom;
   fConf_EventEvent = eval->fConf_EventEvent;
   fListStudent_Event = eval->fListStudent_Event;
@@ -64,6 +65,7 @@ void TOperator::Set( TEvaluator* eval )
   fListProf_Event = eval->fListProf_Event;
   fNumOfProf_Event = eval->fNumOfProf_Event;
   fListConfEvent_Event = eval->fListConfEvent_Event;
+  fListRequiredEvent = eval->fListRequiredEvent;
   fNumOfConfEvent_Event = eval->fNumOfConfEvent_Event;
   fDiffPenalty_S2_Insert = eval->fDiffPenalty_S2_Insert;
   fEvent_Required = eval->fEvent_Required;              // ken hachikubo add 12.15
@@ -200,6 +202,8 @@ void TOperator::CheckValid()
   assert( penalty_S1 == fPenalty_S1 );
   assert( penalty_S2 == fPenalty_S2 );
   assert( penalty_S3 == fPenalty_S3 );
+  assert( penalty_S4 == fPenalty_S4 );
+  assert( penalty_S5 == fPenalty_S5 );
   assert( penalty_S1 + penalty_S2 + penalty_S3 + penalty_S4 + penalty_S5 == fPenalty_S );
 }
 
@@ -208,8 +212,11 @@ void TOperator::CalEvaluation()
   int penalty_H1, penalty_S1, penalty_S2, penalty_S3, penalty_S4, penalty_S5;
   int time;
   int count;
+  int event1, event2;
   double e_ave, e_day, e_diff;
 
+  /* original penalty */
+  /*
   // fPenalty_S1
   penalty_S1 = 0;
   for( int s = 0; s < fNumOfStudent; ++s ){
@@ -257,12 +264,26 @@ void TOperator::CalEvaluation()
     }
   }
   fPenalty_S3 = penalty_S3;
+  */
+
 
   
-  /*  new calevaluation S2 S3 S4 S5*/
-
+  /*  new calevaluation S1 S2 S3 S4 S5*/
+  // fPenalty_S1
+  penalty_S1 = 0;
+  for( int s = 0; s < fNumOfStudent; ++s ){
+    for( int d = 0; d < fNumOfDay; ++d ){
+      time = d * (fNumOfTimeInDay) +1;
+      if( fEvent_StudentTime[ s ][ time ] != -1 )
+	++penalty_S1;
+      time = (d+1) * (fNumOfTimeInDay) -1;
+      if( fEvent_StudentTime[ s ][ time ] != -1 )
+	++penalty_S1;
+    }
+  }
+  fPenalty_S1 = penalty_S1;
   /*
-  // fPenalty_S2
+  // fPenalty_S2 生徒の同日における授業数の偏り
   penalty_S2 = 0;
   count = 0;
   for( int s = 0; s < fNumOfStudent; ++s ){
@@ -285,7 +306,7 @@ void TOperator::CalEvaluation()
   }
   fPenalty_S2 = penalty_S2;
 
-  // fPenalty_S3
+  // fPenalty_S3 教授の曜日における授業数の偏り
   penalty_S3 = 0;
   count = 0;
   for( int p = 0; p < fNumOfProf; ++p ){
@@ -310,28 +331,24 @@ void TOperator::CalEvaluation()
 
   // fPenalty_S4
   for(int e = 0; e < fNumOfEvent; e++){
-    if( fTimeRoom_Event[ e ][ 0 ] < 3 && (fTimeRoom_Event[ e ][ 0 ] + fEvent_TimeRequest[ e ]) > 2 )
+    if( fTimeRoom_Event[ e ][ 0 ] < 3 && (fTimeRoom_Event[ e ][ 0 ] + fEvent_TimeRequest[ e ]) > 3 )
 	++fPenalty_S4;
   }
   
   // fPenalty_S5
   int pflag = 0;
-  for(int e1 = 0 ; e1 < fNumOfEvent; ++e1){
-    for(int e2 = e1; e2 < fNumOfEvent; ++e2){
-      for(int tr1 = 0; tr1 < fEvent_TimeRequest[ e1 ]; ++tr1){
-	for(int tr2 = 0; tr2 < fEvent_TimeRequest[ e2 ]; ++tr2){
-	  if(tr1 == tr2)
-	    pflag = 1;
-	  else
-	    pflag = 0;
-	}
-      }
-      fPenalty_S5 += pflag;
+  int abs_time;
+  for(int e1 = 0 ; e1 < fNumOfRequiredEvent - 1; ++e1){
+    event1 = fListRequiredEvent[ e1 ];
+    for(int e2 = e1 + 1; e2 < fNumOfRequiredEvent; ++e2){
+      event2 = fListRequiredEvent[ e2 ];
+      abs_time = abs( fTimeRoom_Event[ e1 ][ 0 ] - fTimeRoom_Event[ e2 ][ 0 ] );
+      if( abs_time < fEvent_TimeRequest[ e1 ] || abs_time < fEvent_TimeRequest[ e2 ] )
+        ++fPenalty_S5;
     }
   }
   */
-  
-  fPenalty_S = penalty_S1 + penalty_S2 + penalty_S3;
+  fPenalty_S = penalty_S1 + penalty_S2 + penalty_S3 + penalty_S4 + penalty_S5;
 }
 
 
@@ -560,7 +577,18 @@ void TOperator::Eject( int event, int flag )
   if( slot == fNumOfTimeInDay - 1 )
     fPenalty_S1 -= fNumOfStudent_Event[ event ];
   */
-  fPenalty_S = fPenalty_S1 + fPenalty_S2 + fPenalty_S3;
+  
+  // fPenalty_S1
+  slot =  time % fNumOfTimeInDay;
+  for( int tr = 0; tr < fEvent_TimeRequest[ event ]; ++tr ){
+    ++slot;
+    if( slot == fNumOfTimeInDay - 1 || slot == 0);
+    fPenalty_S1 -= fNumOfStudent_Event[ event ];
+  }
+  
+
+  
+  fPenalty_S = fPenalty_S1 + fPenalty_S2 + fPenalty_S3 + fPenalty_S4 + fPenalty_S5;
 }
 
 
@@ -666,7 +694,18 @@ void TOperator::Insert( int event, int time, int room, int flag )
   if( slot == fNumOfTimeInDay - 1 )
     fPenalty_S1 += fNumOfStudent_Event[ event ];
   */
-  fPenalty_S = fPenalty_S1 + fPenalty_S2 + fPenalty_S3;
+
+
+  
+  // fPenalty_S1
+  slot =  time % fNumOfTimeInDay;
+  for( int tr = 0; tr < fEvent_TimeRequest[ event ]; ++tr ){
+    ++slot;
+    if( slot == fNumOfTimeInDay - 1 || slot == 0);
+    fPenalty_S1 += fNumOfStudent_Event[ event ];
+  }
+  
+  fPenalty_S = fPenalty_S1 + fPenalty_S2 + fPenalty_S3 + fPenalty_S4 + fPenalty_S5;
 
 
 }
