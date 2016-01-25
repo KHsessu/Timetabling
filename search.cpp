@@ -135,7 +135,7 @@ void TSearch::LS_MakeFeasible()
 	  continue;
 	}
 	
-	for( int p = 0; p < fNumOfProf_Event[ eventIn ]; ++p ){  // H4のチェック
+	for( int p = 0; p < fNumOfProf_Event[ eventIn ]; ++p ){  // H5のチェック
 	  professor = fListProf_Event[ eventIn ][ p ];
 	  for( int tr = 0; tr < fEvent_TimeRequest[ eventIn ]; ++tr )
 	    if( fProfCantDo[ professor ][ t + tr ] == 1){
@@ -156,6 +156,7 @@ void TSearch::LS_MakeFeasible()
 	    if( event != -1 && fConf_EventEvent[ eventIn ][ event ] != 0 ){ // その時間に授業が入ってる かつ 授業が競合
 	      flagRoom[ r ] = 1;  // この時間その部屋は使えない
 	      ++numOfFlagRoom;
+        break;
 	    }
 	  }
 	  if( numOfFlagRoom == 0 ) 
@@ -212,15 +213,13 @@ void TSearch::LS_MakeFeasible()
 	}	  
       }
     }
-    if( numOfCandi == 0){
+    if( numOfCandi == 0){//初期解生成が詰んだとき
       printf("numOfCandi = %d\n",numOfCandi);
       printf("fNumOfEjectEvent = %d\n",fNumOfEjectEvent);
       printf("%3d \n,",fListEjectEvent[ 0 ]);
-      for( int h = 0; h < fNumOfEjectEvent; ++h ){
-        printf("%3d ",fListEjectEvent[ h ]);
-      }
+      return;
     }
-      assert( numOfCandi != 0 );   
+    // assert( numOfCandi != 0 );   
       //    printf("%d\n",numOfCandi);
     
     rr = rand() % numOfCandi;
@@ -1090,6 +1089,7 @@ void TSearch::LS_Relocation_Swap_Extend()
   int candiRoomIn1[ fNumOfRoom ], candiRoomIn2[ fNumOfRoom ], candiRoomIn[ fNumOfRoom ];
   int roomin1, roomin2;
   int roomIn1, roomIn2, roomIn;
+  int confcount;
   int moved_event[ fNumOfEvent ];
   int listEvent1[ fNumOfEvent ];
   int selectedEvent1[ fNumOfEvent ];
@@ -1157,7 +1157,7 @@ void TSearch::LS_Relocation_Swap_Extend()
         roomEj = fTimeRoom_Event[ eventEj ][ 1 ];
         if( timeEj == -1 )
           goto EEE0;
-
+        //printf("relocation eject1 event=%d\n",eventEj);
         this->Eject( eventEj, 0 );
       
         for( int t = 0; t < fNumOfTime; ++t ){
@@ -1165,8 +1165,10 @@ void TSearch::LS_Relocation_Swap_Extend()
             goto EEE1;
 	
           // if( fConf_EventTime[ eventEj ][ t ] != 0 || t == timeEj ){ // R0
-          if( fConf_EventTime[ eventEj ][ t ] != 0 && t != timeEj ){  // equevalent to ver1 (R1)
-            goto EEE1;
+          for( int tr = 0; tr < fEvent_TimeRequest[ eventEj ]; ++tr){
+            if( fConf_EventTime[ eventEj ][ t + tr ] != 0 && t != timeEj ){  // equevalent to ver1 (R1) H1 & H4 check???
+              goto EEE1;
+            }
           }
 
           for( int p = 0; p < fNumOfProf_Event[ eventEj ]; ++p ){
@@ -1227,12 +1229,12 @@ void TSearch::LS_Relocation_Swap_Extend()
           }
         EEE1:;
         }
-
+        //printf("relocation insert1 event=%d time=%d room=%d\n",eventEj, timeEj, roomEj);
         this->Insert( eventEj, timeEj, roomEj, 0 );
       EEE0:;
       }
       // Relocation (end)
-      printf("Relocation end\n");
+      //printf("Relocation end\n");
 
       // Swap (start)
       for( int i = 0; i < numOfActiveEvent_swap; ++i ){ 
@@ -1249,12 +1251,44 @@ void TSearch::LS_Relocation_Swap_Extend()
           if( selectedEvent1[ event2 ] == 1 && event1 >= event2 )
             goto FFF0;
           // ++countTest;
-        
-        
+          
+          
+          confcount = 0;
+          while(2){
+            if( confcount < fEvent_TimeRequest[ event1 ] && confcount < fEvent_TimeRequest[ event2 ]){
+              if( fConf_EventTime[ event1 ][ time2 + confcount ] - fConf_EventEvent[ event1 ][ event2 ] != 0 ){
+                goto FFF0;
+              }
+              if( fConf_EventTime[ event2 ][ time1 + confcount ] - fConf_EventEvent[ event1 ][ event2 ] != 0 ){
+                goto FFF0;  // このtimeにはeventEjを挿入できない
+              }
+            }else if( confcount < fEvent_TimeRequest[ event1 ]){
+              if( fConf_EventTime[ event1 ][ time2 + confcount ] != 0){
+                goto FFF0;
+              }
+            }else if( confcount < fEvent_TimeRequest[ event2 ]){
+              if( fConf_EventTime[ event2 ][ time1 + confcount ] != 0){
+                goto FFF0;
+              }
+            }else{
+              break;
+            }
+            confcount++;
+          }
+          
+
+          /*
+          // check H1 H4
+          if( fEvent_TimeRequest[ event1 ] == 1 && fEvent_TimeRequest[ event2 ] == 1){
           if( fConf_EventTime[ event1 ][ time2 ] - fConf_EventEvent[ event1 ][ event2 ] != 0 )
             goto FFF0;  // このtimeにはeventEjを挿入できない
           if( fConf_EventTime[ event2 ][ time1 ] - fConf_EventEvent[ event1 ][ event2 ] != 0 )
             goto FFF0;  // このtimeにはeventEjを挿入できない
+          }else{
+            
+            
+          }
+          */
           if( time1 == time2 )  // これはenpty eventが存在している時のみ発生
             goto FFF0;
 
@@ -1324,31 +1358,30 @@ void TSearch::LS_Relocation_Swap_Extend()
           abs_time = abs(time1 - time2);
           if(abs_time < fEvent_TimeRequest[ event1 ] || abs_time < fEvent_TimeRequest[ event2 ]){ // 2つの多時限授業が互いに影響するほど近い時
             if( roomIn1 == roomIn2 ){                                                             // 部屋が一緒だとインサートでエラーを起こすので部屋を変える
-                printf("ncr1 %d    ncr2 %d\n",numCandiRoomIn1,numCandiRoomIn2);
+              //  printf("ncr1 %d    ncr2 %d\n",numCandiRoomIn1,numCandiRoomIn2);
               for( int nr; nr < numCandiRoomIn1; ++nr )
-                printf("candiroomin1 %d ",candiRoomIn1[ nr ]);
+                //  printf("candiroomin1 %d ",candiRoomIn1[ nr ]);
               for( int nr; nr < numCandiRoomIn2; ++nr )
-              printf("candiroomin2 %d\n",candiRoomIn2[ nr ]);
+                //  printf("candiroomin2 %d\n",candiRoomIn2[ nr ]);
               
               if( numCandiRoomIn1 == 1 && numCandiRoomIn2 == 1){
                 goto FFF0;
               }else if( numCandiRoomIn1 > numCandiRoomIn2 ){
                 roomIn1 = candiRoomIn1[ (roomin1 + 1) % numCandiRoomIn1 ];
-                printf("roomIn1 change %d\n",roomIn1);
+                //  printf("roomIn1 change %d\n",roomIn1);
               }else{
                 roomIn2 = candiRoomIn2[ (roomin2 + 1) % numCandiRoomIn2 ];
-                printf("roomIn2 change %d\n",roomIn2);
+                //  printf("roomIn2 change %d\n",roomIn2);
               }
             }
           }
-          //oh yeah
-
           
-          printf("eject event%d time%d room%d\n",event1,time1,room1);
+          //  printf("swap eject1 event%d time%d room%d\n",event1,time1,room1);
           this->Eject( event1, 0 );
 
 
           /* for check */
+          /*
  printf("r\\t ");
   for(int t = 0; t < fNumOfTime; ++t)
     printf("%3d ",t);
@@ -1359,50 +1392,59 @@ void TSearch::LS_Relocation_Swap_Extend()
       printf("%3d ",fEvent_TimeRoom[ t ][ r ]);
     }
 	printf("\n");
-  }          
-  printf("eject event%d time%d room%d\n",event2,time2,room2);
+  }         */
+          
+          //   printf("swap eject2 event%d time%d room%d\n",event2,time2,room2);
           this->Eject( event2, 0 );
-           printf("r\\t ");
-  for(int t = 0; t < fNumOfTime; ++t)
-    printf("%3d ",t);
-  printf("\n");
-  for( int r = 0; r < fNumOfRoom; ++r ){
-    printf("%3d ",r);
-    for( int t = 0; t < fNumOfTime; ++t ){
-      printf("%3d ",fEvent_TimeRoom[ t ][ r ]);
-    }
-	printf("\n");
-  }
-  printf("insert event%d time%d room%d \n",event1,time2,roomIn2);
-          this->Insert( event1, time2, roomIn2, 0 );// 怪しい
-           printf("r\\t ");
-  for(int t = 0; t < fNumOfTime; ++t)
-    printf("%3d ",t);
-  printf("\n");
-  for( int r = 0; r < fNumOfRoom; ++r ){
-    printf("%3d ",r);
-    for( int t = 0; t < fNumOfTime; ++t ){
-      printf("%3d ",fEvent_TimeRoom[ t ][ r ]);
-    }
-	printf("\n");
-  }
-  printf("insert event%d time%d room%d \n",event2,time1,roomIn1);
-          this->Insert( event2, time1, roomIn1, 0 );//
-           printf("r\\t ");
-  for(int t = 0; t < fNumOfTime; ++t)
-    printf("%3d ",t);
-  printf("\n");
-  for( int r = 0; r < fNumOfRoom; ++r ){
-    printf("%3d ",r);
-    for( int t = 0; t < fNumOfTime; ++t ){
-      printf("%3d ",fEvent_TimeRoom[ t ][ r ]);
-    }
-	printf("\n");
-  }
 
+          /*
+           printf("r\\t ");
+  for(int t = 0; t < fNumOfTime; ++t)
+    printf("%3d ",t);
+  printf("\n");
+  for( int r = 0; r < fNumOfRoom; ++r ){
+    printf("%3d ",r);
+    for( int t = 0; t < fNumOfTime; ++t ){
+      printf("%3d ",fEvent_TimeRoom[ t ][ r ]);
+    }
+	printf("\n");
+  }*/
+          
+          //  printf("swap insert1 event%d time%d room%d \n",event1,time2,roomIn2);
+          this->Insert( event1, time2, roomIn2, 0 );// 怪しい
+
+          /*
+          printf("r\\t ");
+  for(int t = 0; t < fNumOfTime; ++t)
+    printf("%3d ",t);
+  printf("\n");
+  for( int r = 0; r < fNumOfRoom; ++r ){
+    printf("%3d ",r);
+    for( int t = 0; t < fNumOfTime; ++t ){
+      printf("%3d ",fEvent_TimeRoom[ t ][ r ]);
+    }
+	printf("\n");
+  }*/
+          //   printf("swap insert2 event%d time%d room%d \n",event2,time1,roomIn1);
+          this->Insert( event2, time1, roomIn1, 0 );//
+
+
+          /*
+          printf("r\\t ");
+  for(int t = 0; t < fNumOfTime; ++t)
+    printf("%3d ",t);
+  printf("\n");
+  for( int r = 0; r < fNumOfRoom; ++r ){
+    printf("%3d ",r);
+    for( int t = 0; t < fNumOfTime; ++t ){
+      printf("%3d ",fEvent_TimeRoom[ t ][ r ]);
+    }
+	printf("\n");
+  }
+          */
   /* end check */
   
-          printf("kari\n");
+          //     printf("kari\n");
           diff = fPenalty_S - penalty_S_before; 
           // ++count2;
         
@@ -1427,9 +1469,13 @@ void TSearch::LS_Relocation_Swap_Extend()
               ++numOfCandi;
             }
           }
+          //          printf("swap eject3 event=%d\n",event1);
           this->Eject( event1, 0 );
+          // printf("swap eject4 event=%d\n",event2);
           this->Eject( event2, 0 );
+          //printf("swap insert3 event%d time%d room%d \n",event1,time1,room1);
           this->Insert( event1, time1, room1, 0 );
+          //printf("swap insert4 event%d time%d room%d \n",event2,time2,room2);
           this->Insert( event2, time2, room2, 0 );
           assert( fPenalty_S == penalty_S_before );
         
@@ -1437,7 +1483,7 @@ void TSearch::LS_Relocation_Swap_Extend()
         }    
       }
       // Swap (end)
-      printf("Swap end\n");
+      //printf("Swap end\n");
       if( numOfCandi != 0 )
         {  
           rr = rand() % numOfCandi;
@@ -1450,7 +1496,9 @@ void TSearch::LS_Relocation_Swap_Extend()
           
             // fMoved_EventTime[ event ][ fTimeRoom_Event[ event ][ 0 ] ] = fNumOfIterLS + fTabuTenure;
             moved_event[ event ] = fNumOfIterLS + fTabuTenure;
-            this->Eject( event, 1 ); printf("relocation\n");
+            //printf("do relocation eject1 event=%d",event);
+            this->Eject( event, 1 );
+            //printf("do relocation insert1 event%d time%d room%d \n",event,time,room);
             this->Insert( event, time, room, 1 );
             assert( penalty_S_before + diffMin == fPenalty_S );  // for check
           }
@@ -1468,10 +1516,14 @@ void TSearch::LS_Relocation_Swap_Extend()
             // fMoved_EventTime[ event2 ][ time2 ] = fNumOfIterLS + fTabuTenure;
             moved_event[ event1 ] = fNumOfIterLS + fTabuTenure;
             moved_event[ event2 ] = fNumOfIterLS + fTabuTenure;
-            this->Eject( event1, 1); printf("eject1 ");
-            this->Eject( event2, 1 ); printf("eject2 ");
-            this->Insert( event1, time2, roomIn2, 1 ); printf("insert1 ");
-            this->Insert( event2, time1, roomIn1, 1 ); printf("insert2\n");
+            // printf("do swap eject1 event=%d\n",event1);
+            this->Eject( event1, 1);
+            //printf("do swap eject2 event=%d\n",event2);
+            this->Eject( event2, 1 );
+            //printf("do swap insert1 event%d time%d room%d \n",event1,time2,roomIn2);
+            this->Insert( event1, time2, roomIn2, 1 );
+            //printf("do swap insert2 event%d time%d room%d \n",event2,time1,roomIn1);
+            this->Insert( event2, time1, roomIn1, 1 );
           }
         }
     
@@ -1492,12 +1544,11 @@ void TSearch::LS_Relocation_Swap_Extend()
         break;
     
       this->CheckValid(); 
-    }
-  
-  this->TransFromIndi( tIndi_LS );
 
-  
- printf("r\\t ");
+
+
+      /*
+  printf("r\\t ");
   for(int t = 0; t < fNumOfTime; ++t)
     printf("%3d ",t);
   printf("\n");
@@ -1506,9 +1557,27 @@ void TSearch::LS_Relocation_Swap_Extend()
     for( int t = 0; t < fNumOfTime; ++t ){
       printf("%3d ",fEvent_TimeRoom[ t ][ r ]);
     }
-	printf("\n");
+    printf("\n");
   }
   
+      */
+
+
+    }
+  
+  this->TransFromIndi( tIndi_LS );
+  printf("r\\t ");
+  for(int t = 0; t < fNumOfTime; ++t)
+    printf("%3d ",t);
+  printf("\n");
+  for( int r = 0; r < fNumOfRoom; ++r ){
+    printf("%3d ",r);
+    for( int t = 0; t < fNumOfTime; ++t ){
+      printf("%3d ",fEvent_TimeRoom[ t ][ r ]);
+    }
+    printf("\n");
+  }
+
   // printf( "count = %d %d %d\n", count1, count2, countTest );
   // fclose( fp );
 }

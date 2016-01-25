@@ -191,8 +191,17 @@ void TOperator::CheckValid()
       assert( fConf_EventTime[ e ][ t ] == numOfConf );
     }
   }
-  
 
+  // fConf_EventEvent
+  for( int t = 0; t < fNumOfTime; ++t){
+    for( int r = 0; r < fNumOfRoom -1; ++r){
+      event = fEvent_TimeRoom[ t ][ r ];
+      for(int rr = r+1; fNumOfRoom; ++rr){
+        assert( fConf_EventEvent[ event ][ fEvent_TimeRoom[t][rr] ] != 1);
+      }
+    }
+  }
+  
   int penalty_S1 = fPenalty_S1;
   int penalty_S2 = fPenalty_S2;
   int penalty_S3 = fPenalty_S3;
@@ -616,8 +625,8 @@ void TOperator::Insert( int event, int time, int room, int flag )
   for( int r = 0; r < fNumOfRoom; ++r ){ // partial feasibility
     event1 = fEvent_TimeRoom[ time ][ r ];
     if( event1 != -1 && fConf_EventEvent[ event ][ event1 ] != 0 ){//check H1 H4
+      printf("event=%d time=%d room=%d flag=%d\n", event, time, room, flag);
       printf("error event%d & event%d is conflict\n",event, event1);
-      printf("%d %d %d\n",event , time, room);
       assert( 1 == 2 );
     }
   }
