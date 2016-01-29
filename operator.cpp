@@ -67,6 +67,7 @@ void TOperator::Set( TEvaluator* eval )
   fListConfEvent_Event = eval->fListConfEvent_Event;
   fListRequiredEvent = eval->fListRequiredEvent;
   fNumOfConfEvent_Event = eval->fNumOfConfEvent_Event;
+  fProfCantDo = eval->fProfCantDo;
   fDiffPenalty_S2_Insert = eval->fDiffPenalty_S2_Insert;
   fEvent_Required = eval->fEvent_Required;              // ken hachikubo add 12.15
   fEvent_TimeRequest = eval->fEvent_TimeRequest;           // ken hachikubo add 12.15
@@ -96,6 +97,10 @@ void TOperator::Set( TEvaluator* eval )
   for( int s = 0; s < fNumOfStudent; ++s )
     fNumOfEvent_StudentDay[ s ] = new int [ fNumOfDay ];
 
+  fNumOfEvent_ProfDay = new int* [ fNumOfProf ];
+  for( int p = 0; p < fNumOfProf; ++p )
+    fNumOfEvent_ProfDay[ p ] = new int [ fNumOfDay ];
+
   fConf_EventTime = new int* [ fNumOfEvent ];
   for( int e = 0; e < fNumOfEvent; ++e )
     fConf_EventTime[ e ] = new int [ fNumOfTime ];
@@ -103,7 +108,7 @@ void TOperator::Set( TEvaluator* eval )
 
 void TOperator::SetParameter()
 {
-  fFlagCheckValid = 0;
+  fFlagCheckValid = 1;
 }
 
 
@@ -116,6 +121,7 @@ void TOperator::CheckValid()
   int numOfEjectEvent;
   int numOfEvent_StudentDay[ fNumOfStudent ][ fNumOfDay ];
   int numOfConf;
+  int timeflag;
 
   // fListEjectEvent, fInvEjectEvent, fNumOfEjectEvent  
   for( int h = 0; h < fNumOfEjectEvent; ++h ){
@@ -149,15 +155,24 @@ void TOperator::CheckValid()
     for( int r = 0; r < fNumOfRoom; ++r ){
       event = fEvent_TimeRoom[ t ][ r ];
       if( event != -1 ){
-	assert( fTimeRoom_Event[ event ][ 0 ] == t );
-	assert( fTimeRoom_Event[ event ][ 1 ] ==  r );
+        for( int tr = 0; tr < fEvent_TimeRequest[ event ]; ++tr ){
+          if( t == fTimeRoom_Event[ event ][ 0 ] + tr ){
+            timeflag = 0;
+            break;
+          }else{ timeflag = 1; }
+        }
+        if(timeflag != 0){
+          printf("error : timeslot is illegal");
+          assert( 1 == 2 );
+          }
+        assert( fTimeRoom_Event[ event ][ 1 ] == r );
       }
       else{
-	assert( fEvent_TimeRoom[ t ][ r ] == -1 );
+        assert( fEvent_TimeRoom[ t ][ r ] == -1 );
       } 
     }
   }
-
+  
   // fEvent_StudentTime, fNumOfEvent_StudentDay
   for( int s = 0; s < fNumOfStudent; ++s )
     for( int d = 0; d < fNumOfDay; ++d )
@@ -167,31 +182,30 @@ void TOperator::CheckValid()
     for( int t = 0; t < fNumOfTime; ++t ){
       event = fEvent_StudentTime[ s ][ t ]; 
       if( event != -1 ){
-	time = fTimeRoom_Event[ event ][ 0 ];
-	day = t / fNumOfTimeInDay; 
-	++numOfEvent_StudentDay[ s ][ day ];
-	assert( t == time );
+        time = fTimeRoom_Event[ event ][ 0 ];
+        day = t / fNumOfTimeInDay; 
+        numOfEvent_StudentDay[ s ][ day ] += fEvent_TimeRequest[ event ];
+        assert( abs(t - time) < fEvent_TimeRequest[ event ] );
       }
     }
   }
-
   for( int s = 0; s < fNumOfStudent; ++s )
     for( int d = 0; d < fNumOfDay; ++d )
       assert( fNumOfEvent_StudentDay[ s ][ d ] == numOfEvent_StudentDay[ s ][ d ] );
-
+  
   for( int e = 0; e < fNumOfEvent; ++e ){ 
     for( int t = 0; t < fNumOfTime; ++t ){
       numOfConf = 0;
       for( int r = 0; r < fNumOfRoom; ++r ){
-	event = fEvent_TimeRoom[ t ][ r ];
-	if( event != -1 ){
-	  numOfConf += fConf_EventEvent[ e ][ event ];
-	}
+        event = fEvent_TimeRoom[ t ][ r ];
+        if( event != -1 ){
+          numOfConf += fConf_EventEvent[ e ][ event ];
+        }
       }
       assert( fConf_EventTime[ e ][ t ] == numOfConf );
     }
   }
-
+  
   // fConf_EventEvent
   for( int t = 0; t < fNumOfTime; ++t){
     for( int r = 0; r < fNumOfRoom -1; ++r){
@@ -207,6 +221,7 @@ void TOperator::CheckValid()
   int penalty_S3 = fPenalty_S3;
   int penalty_S4 = fPenalty_S4;   // ken hachikubo add 12.29
   int penalty_S5 = fPenalty_S5;
+  printf("S1=%d S2=%d S3=%d S4=%d S5=%d\n",penalty_S1,penalty_S2,penalty_S3,penalty_S4,penalty_S5);
   this->CalEvaluation();
   assert( penalty_S1 == fPenalty_S1 );
   assert( penalty_S2 == fPenalty_S2 );
@@ -291,53 +306,53 @@ void TOperator::CalEvaluation()
     }
   }
   fPenalty_S1 = penalty_S1;
-  /*
+  
   // fPenalty_S2 生徒の同日における授業数の偏り
   penalty_S2 = 0;
-  count = 0;
   for( int s = 0; s < fNumOfStudent; ++s ){
+    count = 0;
     for( int t = 0; t < fNumOfTime; ++t ){
       if( fEvent_StudentTime[ s ][ t ] != -1)
-	count++;
+        count++;
     }
     e_ave = ( count / fNumOfDay );
     for ( int d = 0; d < fNumOfDay; ++d){
+      e_day = 0;
       time = d * (fNumOfTimeInDay);
-      count = 0;
       for(int h = 0; h < fNumOfTimeInDay; ++h ){
-	if( fEvent_StudentTime[ s ][ time + h ] != -1 )
-	  ++e_day;
+        if( fEvent_StudentTime[ s ][ time + h ] != -1 )
+          ++e_day;
       }
       e_diff = e_ave - e_day;
-      if( (e_diff * e_diff) > 2 )
-	penalty_S2 += (int)e_diff;	// 他のペナルティとのバランスを考える
+      //      if( (e_diff * e_diff) > 2 )
+      penalty_S2 += (int)e_diff;	// 他のペナルティとのバランスを考える
     }
   }
   fPenalty_S2 = penalty_S2;
-
+  
   // fPenalty_S3 教授の曜日における授業数の偏り
   penalty_S3 = 0;
   count = 0;
   for( int p = 0; p < fNumOfProf; ++p ){
     for( int t = 0; t < fNumOfTime; ++t ){
       if( fEvent_ProfTime[ p ][ t ] != -1)
-	count++;
+        count++;
     }
     e_ave = ( count / fNumOfDay );
     for ( int d = 0; d < fNumOfDay; ++d){
       time = d * (fNumOfTimeInDay);
       count = 0;
       for(int h = 0; h < fNumOfTimeInDay; ++h ){
-	if( fEvent_ProfTime[ p ][ time + h ] != -1 )
-	  ++e_day;
+        if( fEvent_ProfTime[ p ][ time + h ] != -1 )
+          ++e_day;
       }
       e_diff = e_ave - e_day;
-      if( (e_diff * e_diff) > 2 )
-	penalty_S3 += (int)e_diff;	// 他のペナルティとのバランスを考える
+      //      if( (e_diff * e_diff) > 2 )
+      penalty_S3 += (int)e_diff;	// 他のペナルティとのバランスを考える
     }
   }
   fPenalty_S3 = penalty_S3;
-
+  /*
   // fPenalty_S4
   for(int e = 0; e < fNumOfEvent; e++){
     if( fTimeRoom_Event[ e ][ 0 ] < 3 && (fTimeRoom_Event[ e ][ 0 ] + fEvent_TimeRequest[ e ]) > 3 )
@@ -500,6 +515,14 @@ void TOperator::ResetSol()
     for( int d = 0; d < fNumOfDay; ++d )
       fNumOfEvent_StudentDay[ s ][ d ] = 0;
 
+  for( int p = 0; p < fNumOfProf; ++p )
+    for( int t = 0; t < fNumOfTime; ++t )
+      fEvent_ProfTime[ p ][ t ] = -1;
+
+  for( int p = 0; p < fNumOfProf; ++p )
+    for( int d = 0; d < fNumOfDay; ++d )
+      fNumOfEvent_ProfDay[ p ][ d ] = 0;
+
   for( int e = 0; e < fNumOfEvent; ++e )
     for( int t = 0; t < fNumOfTime; ++t )
       fConf_EventTime[ e ][ t ] = 0;
@@ -507,17 +530,18 @@ void TOperator::ResetSol()
 
 void TOperator::Eject( int event, int flag )
 {
-  int student, time, room, day;
+  int student, professor, time, room, day;
   int slot, time_s, time_e;
   int count_p, count_n;
   int event1;
-
+  double e_ave, e_day, e_diff;
+  
   assert( 0 <= event < fNumOfEvent );
   assert( fTimeRoom_Event[ event ][ 0 ] != -1 );
   assert( fTimeRoom_Event[ event ][ 1 ] != -1 );
   time = fTimeRoom_Event[ event ][ 0 ];
   room = fTimeRoom_Event[ event ][ 1 ];
-  
+
   for( int tr = 0; tr < fEvent_TimeRequest[ event ]; ++tr ){//
     assert(fEvent_TimeRoom[ time + tr ][ room ] == event);//
     fEvent_TimeRoom[ time + tr ][ room ] = -1;//
@@ -542,16 +566,63 @@ void TOperator::Eject( int event, int flag )
   }
   
   day = time / fNumOfTimeInDay;
-  /*
+
+
+  /* penalty_S2 _S3をあらかじめ引いておく */
+  
+  for( int k = 0; k < fNumOfStudent_Event[ event ]; ++k ){
+    e_ave = 0;
+    e_day = 0;
+    student = fListStudent_Event[ event ][ k ];
+    for( int d = 0; d < fNumOfDay; ++d)
+      e_ave += fNumOfEvent_StudentDay[ student ][ d ];
+    e_ave /= fNumOfDay;
+    for( int d = 0; d < fNumOfDay; ++d ){
+      e_day = fNumOfEvent_StudentDay[ student ][ d ];
+      e_diff = e_ave - e_day;
+      //     printf("eject student %d before e_ave=%f e_day=%d\n",k , e_ave,e_day);
+      //      if( (e_diff * e_diff) > 2 )
+      fPenalty_S2 -= abs((int)e_diff);	// 他のペナルティとのバランスを考える
+    }
+  }
+  for( int j = 0; j < fNumOfProf_Event[ event ]; ++j ){
+    e_ave = 0;
+    e_day = 0;
+    professor = fListProf_Event[ event ][ j ];
+    for( int d = 0; d < fNumOfDay; ++d)
+      e_ave += fNumOfEvent_ProfDay[ professor ][ d ];
+    e_ave /= fNumOfDay;
+    for( int d = 0; d < fNumOfDay; ++d ){
+      e_day = fNumOfEvent_ProfDay[ professor ][ d ];
+      e_diff = e_ave - e_day;
+      //     printf("eject student %d before e_ave=%f e_day=%d\n",k , e_ave,e_day);
+      //      if( (e_diff * e_diff) > 2 )
+      fPenalty_S3 -= abs((int)e_diff);	// 他のペナルティとのバランスを考える
+    }
+  }
+  
+  
+  
   for( int k = 0; k < fNumOfStudent_Event[ event ]; ++k ){
     // fNumOfEvent_StudentDay;
     student = fListStudent_Event[ event ][ k ];
     for( int tr = 0; tr < fEvent_TimeRequest[ event ]; ++tr ){//
       assert( fEvent_StudentTime[ student ][ time + tr ] != -1 );//
       fEvent_StudentTime[ student ][ time + tr ] = -1;//
-    --fNumOfEvent_StudentDay[ student ][ day ];
+      --fNumOfEvent_StudentDay[ student ][ day ];
     }
-    
+  }
+  
+  for( int j = 0; j < fNumOfProf_Event[ event ]; ++j ){
+    //fNumOfEvent_ProfDay;
+    professor = fListProf_Event[ event ][ j ];
+    for( int tr = 0; tr < fEvent_TimeRequest[ event ]; ++tr ){
+      assert( fEvent_ProfTime[ professor ][ time + tr ] != -1 );
+      fEvent_ProfTime[ professor ][ time + tr ] = -1;
+      --fNumOfEvent_ProfDay[ professor ][ day ];
+    }
+  }
+  /*
     // fPenalty_S3;
     
     if( fNumOfEvent_StudentDay[ student ][ day ] == 1 )
@@ -594,9 +665,43 @@ void TOperator::Eject( int event, int flag )
     if( slot == fNumOfTimeInDay - 1 || slot == 0);
     fPenalty_S1 -= fNumOfStudent_Event[ event ];
   }
-  
 
+    // fPenalty_S2 生徒の同日における授業数の偏り
+  for( int k = 0; k < fNumOfStudent_Event[ event ]; ++k ){
+    e_ave = 0;
+    e_day = 0;
+    student = fListStudent_Event[ event ][ k ];
+    for( int d = 0; d < fNumOfDay; ++d)
+      e_ave += fNumOfEvent_StudentDay[ student ][ d ];
+    e_ave /= fNumOfDay;
+
+    for( int d = 0; d < fNumOfDay; ++d ){
+      e_day = fNumOfEvent_StudentDay[ student ][ d ];
+      e_diff = e_ave - e_day;
+      //     printf("eject student %d after e_ave=%f e_day=%d\n",k,e_ave,e_day);
+      //      if( (e_diff * e_diff) > 2 )
+      fPenalty_S2 += abs((int)e_diff);	// 他のペナルティとのバランスを考える
+    }
+  }
   
+  // fPenalty_S3
+  for( int j = 0; j < fNumOfProf_Event[ event ]; ++j ){
+    e_ave = 0;
+    e_day = 0;
+    professor = fListProf_Event[ event ][ j ];
+    for( int d = 0; d < fNumOfDay; ++d)
+      e_ave += fNumOfEvent_ProfDay[ professor ][ d ];
+    e_ave /= fNumOfDay;
+    
+    for( int d = 0; d < fNumOfDay; ++d ){
+      e_day = fNumOfEvent_ProfDay[ professor ][ d ];
+      e_diff = e_ave - e_day;
+      //     printf("eject student %d after e_ave=%f e_day=%d\n",k,e_ave,e_day);
+      //      if( (e_diff * e_diff) > 2 )
+      fPenalty_S3 += abs((int)e_diff);	// 他のペナルティとのバランスを考える
+    }
+  }
+  //  printf("eject event%d S1=%d S2=%d S3=%d S4=%d S5=%d\n", event, fPenalty_S1, fPenalty_S2, fPenalty_S3, fPenalty_S4, fPenalty_S5);
   fPenalty_S = fPenalty_S1 + fPenalty_S2 + fPenalty_S3 + fPenalty_S4 + fPenalty_S5;
 }
 
@@ -605,9 +710,11 @@ void TOperator::Eject( int event, int flag )
 void TOperator::Insert( int event, int time, int room, int flag )
 {
   int student, day;
+  int professor;
   int slot, time_s, time_e;
   int count_p, count_n;
   int event1;
+  double e_ave, e_day, e_diff;
 
   assert( 0 <= event < fNumOfEvent );
   assert( 0 <= time < fNumOfTime );
@@ -658,17 +765,63 @@ void TOperator::Insert( int event, int time, int room, int flag )
     }
   }
 
+  /* penalty_S2 _S3をあらかじめ引いておく */
+
+  for( int k = 0; k < fNumOfStudent_Event[ event ]; ++k ){
+    student = fListStudent_Event[ event ][ k ];
+    e_ave = 0;
+    e_day = 0;
+    for( int d = 0; d < fNumOfDay; ++d)
+      e_ave += fNumOfEvent_StudentDay[ student ][ d ];
+    e_ave /= fNumOfDay;
+    for( int d = 0; d < fNumOfDay; ++d ){
+      e_day = fNumOfEvent_StudentDay[ student ][ d ];
+      e_diff = e_ave - e_day;
+      //   printf("insert student %d before e_ave=%f e_day=%d\n",k , e_ave,e_day);
+      
+      //     if( (e_diff * e_diff) > 2 )
+      fPenalty_S2 -= abs((int)e_diff);	// 他のペナルティとのバランスを考える
+    }
+  }
+  for( int j = 0; j < fNumOfProf_Event[ event ]; ++j ){
+    e_ave = 0;
+    e_day = 0;
+    professor = fListProf_Event[ event ][ j ];
+    for( int d = 0; d < fNumOfDay; ++d)
+      e_ave += fNumOfEvent_ProfDay[ professor ][ d ];
+    e_ave /= fNumOfDay;
+    for( int d = 0; d < fNumOfDay; ++d ){
+      e_day = fNumOfEvent_ProfDay[ professor ][ d ];
+      e_diff = e_ave - e_day;
+      //     printf("eject student %d before e_ave=%f e_day=%d\n",k , e_ave,e_day);
+      //      if( (e_diff * e_diff) > 2 )
+      fPenalty_S3 -= abs((int)e_diff);	// 他のペナルティとのバランスを考える
+    }
+  }
+  
+  
   day = time / fNumOfTimeInDay;
-  /*
+  
   for( int k = 0; k < fNumOfStudent_Event[ event ]; ++k ){
     // fNumOfEvent_StudentDay;
     student = fListStudent_Event[ event ][ k ];
     for( int tr = 0; tr < fEvent_TimeRequest[ event ]; ++tr ){//
       assert( fEvent_StudentTime[ student ][ time + tr ] == -1 );//
       fEvent_StudentTime[ student ][ time + tr ] = event;//
-    ++fNumOfEvent_StudentDay[ student ][ day ];
-    }//
-        
+      ++fNumOfEvent_StudentDay[ student ][ day ];
+    }
+  }
+  for( int j = 0; j < fNumOfProf_Event[ event ]; ++j ){
+    //fNumOfEvent_ProfDay;
+    professor = fListProf_Event[ event ][ j ];
+    for( int tr = 0; tr < fEvent_TimeRequest[ event ]; ++tr ){
+      assert( fEvent_ProfTime[ professor ][ time + tr ] == -1 );
+      fEvent_ProfTime[ professor ][ time + tr ] = event;
+      ++fNumOfEvent_ProfDay[ professor ][ day ];
+    }
+  }
+  
+    /*      
     // fPenalty_S3;
     
     if( fNumOfEvent_StudentDay[ student ][ day ] == 1 )
@@ -709,11 +862,49 @@ void TOperator::Insert( int event, int time, int room, int flag )
   // fPenalty_S1
   slot =  time % fNumOfTimeInDay;
   for( int tr = 0; tr < fEvent_TimeRequest[ event ]; ++tr ){
-    ++slot;
     if( slot == fNumOfTimeInDay - 1 || slot == 0);
     fPenalty_S1 += fNumOfStudent_Event[ event ];
+    slot++;
   }
-  
+
+
+  // fPenalty_S2 生徒の同日における授業数の偏り
+  for( int k = 0; k < fNumOfStudent_Event[ event ]; ++k ){
+    student = fListStudent_Event[ event ][ k ];
+    e_ave = 0;
+    e_day = 0;
+    for( int d = 0; d < fNumOfDay; ++d)
+      e_ave += fNumOfEvent_StudentDay[ student ][ d ];
+    e_ave /= fNumOfDay;
+
+    for( int d = 0; d < fNumOfDay; ++d ){
+      e_day = fNumOfEvent_StudentDay[ student ][ d ];
+      e_diff = e_ave - e_day;
+      //      printf("insert student %d after e_ave=%f e_day=%d\n",k , e_ave,e_day);
+      //      if( (e_diff * e_diff) > 2 )
+      fPenalty_S2 +=abs( (int)e_diff);	// 他のペナルティとのバランスを考える
+    }
+  }
+
+   // fPenalty_S3
+  for( int j = 0; j < fNumOfProf_Event[ event ]; ++j ){
+    e_ave = 0;
+    e_day = 0;
+    professor = fListProf_Event[ event ][ j ];
+    for( int d = 0; d < fNumOfDay; ++d)
+      e_ave += fNumOfEvent_ProfDay[ professor ][ d ];
+    e_ave /= fNumOfDay;
+    
+    for( int d = 0; d < fNumOfDay; ++d ){
+      e_day = fNumOfEvent_ProfDay[ professor ][ d ];
+      e_diff = e_ave - e_day;
+      //     printf("eject student %d after e_ave=%f e_day=%d\n",k,e_ave,e_day);
+      //      if( (e_diff * e_diff) > 2 )
+      fPenalty_S3 += abs((int)e_diff);	// 他のペナルティとのバランスを考える
+    }
+  }
+
+  //  printf("insert event%d S1=%d S2=%d S3=%d S4=%d S5=%d\n", event, fPenalty_S1, fPenalty_S2, fPenalty_S3, fPenalty_S4, fPenalty_S5);
   fPenalty_S = fPenalty_S1 + fPenalty_S2 + fPenalty_S3 + fPenalty_S4 + fPenalty_S5;
 
 

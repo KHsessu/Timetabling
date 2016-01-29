@@ -85,6 +85,7 @@ class TOperator {
   int **fEvent_StudentTime;     // [student][time] -> event
   int **fEvent_ProfTime;	// [professor][time] -> event  ken hachikubo add 1.12
   int **fNumOfEvent_StudentDay; // [student][day] -> number of event
+  int **fNumOfEvent_ProfDay;
   int **fConf_EventTime;        // [event][time] -> eventをtimeに割付時のコンフリクト学生数
 
   // Variables for the methods

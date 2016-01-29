@@ -1,0 +1,4 @@
+evaluator.cpp:230:      fConf_EventEvent[ i ][ j ] = 0;
+evaluator.cpp:249:        ++fConf_EventEvent[e1][e2];
+evaluator.cpp:271:        ++fConf_EventEvent[e1][e2];
+operator.cpp:214:        assert( fConf_EventEvent[ event ][ fEvent_TimeRoom[t][rr] ] != 1);

@@ -111,7 +111,7 @@ void TSearch::LS_MakeFeasible()
   for( int i = 0; i < fNumOfEvent; ++i )
     for( int t = 0; t < fNumOfTime; ++t )
       fMoved_EventTime[ i ][ t ] = fNumOfIterLS; // Event Timeのみ(room は考慮していない)
-
+  printf("LS_MakeFeasible()\n");
   while( 1 )
   {
     ++fNumOfIterLS;
@@ -137,11 +137,12 @@ void TSearch::LS_MakeFeasible()
 	
 	for( int p = 0; p < fNumOfProf_Event[ eventIn ]; ++p ){  // H5のチェック
 	  professor = fListProf_Event[ eventIn ][ p ];
-	  for( int tr = 0; tr < fEvent_TimeRequest[ eventIn ]; ++tr )
+	  for( int tr = 0; tr < fEvent_TimeRequest[ eventIn ]; ++tr ){
 	    if( fProfCantDo[ professor ][ t + tr ] == 1){
 	      cantdoevent = 1;
 	      break;
 	    }
+    }
 	}
 	if( cantdoevent == 1 ){
 	  //	  printf("professor can not do event on time in eventIn = %d  time = %d is skiped\n", eventIn, t);
@@ -216,7 +217,7 @@ void TSearch::LS_MakeFeasible()
     if( numOfCandi == 0){//初期解生成が詰んだとき
       printf("numOfCandi = %d\n",numOfCandi);
       printf("fNumOfEjectEvent = %d\n",fNumOfEjectEvent);
-      printf("%3d \n,",fListEjectEvent[ 0 ]);
+      printf("%3d \n",fListEjectEvent[ 0 ]);
       return;
     }
     // assert( numOfCandi != 0 );   
@@ -242,7 +243,7 @@ void TSearch::LS_MakeFeasible()
 	this->Eject( event, 1 );
     }
     }
-    //   printf("Insert( %d %d %d)\n", eventIn, timeIn, roomIn);
+    //       printf("Insert( %d %d %d)\n", eventIn, timeIn, roomIn);
     this->Insert( eventIn, timeIn, roomIn, 1 );    
     //    assert( tmp + diffMin == fNumOfEjectEvent ); // for check
     //}
@@ -1477,6 +1478,7 @@ void TSearch::LS_Relocation_Swap_Extend()
           this->Insert( event1, time1, room1, 0 );
           //printf("swap insert4 event%d time%d room%d \n",event2,time2,room2);
           this->Insert( event2, time2, room2, 0 );
+ 
           assert( fPenalty_S == penalty_S_before );
         
         FFF0:;
@@ -1542,25 +1544,8 @@ void TSearch::LS_Relocation_Swap_Extend()
         break;
       if( fNumOfIterLS > fMaxNumOfIterLS )
         break;
-    
-      this->CheckValid(); 
-
-
-
-      /*
-  printf("r\\t ");
-  for(int t = 0; t < fNumOfTime; ++t)
-    printf("%3d ",t);
-  printf("\n");
-  for( int r = 0; r < fNumOfRoom; ++r ){
-    printf("%3d ",r);
-    for( int t = 0; t < fNumOfTime; ++t ){
-      printf("%3d ",fEvent_TimeRoom[ t ][ r ]);
-    }
-    printf("\n");
-  }
   
-      */
+      this->CheckValid(); 
 
 
     }
