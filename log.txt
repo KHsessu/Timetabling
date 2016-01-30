@@ -1,3 +1,0 @@
-./jikken.exe 100 DST small1k.tim 1 100 1
-seed = 1111
-makefile:16: ターゲット 'soltest' のレシピで失敗しました

@@ -7,7 +7,7 @@ jikken: main.cpp env.cpp evaluator.cpp indi.cpp operator.cpp search.cpp rand.cpp
 	g++ -o jikken    -O2 main.cpp env.cpp evaluator.cpp indi.cpp operator.cpp search.cpp rand.cpp  sort.cpp -lm
 
 debug: main.cpp env.cpp evaluator.cpp indi.cpp operator.cpp search.cpp rand.cpp  sort.cpp
-	g++ -g -o jikken  main.cpp env.cpp evaluator.cpp indi.cpp operator.cpp search.cpp rand.cpp  sort.cpp -lm
+	g++ -g -Wall -o jikken  main.cpp env.cpp evaluator.cpp indi.cpp operator.cpp search.cpp rand.cpp  sort.cpp -lm
 
 run: jikken.exe
 	./jikken.exe 1 DST small1k.tim 1 10 100000

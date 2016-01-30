@@ -89,7 +89,7 @@ class TOperator {
   int **fConf_EventTime;        // [event][time] -> eventをtimeに割付時のコンフリクト学生数
 
   // Variables for the methods
-  int fDiffPenalty_S, fDiffPenalty_S1, fDiffPenalty_S2, fDiffPenalty_S3, fDiffPenltyS4, fDiffPenalty_S5;    // ken hachikubo change 12.29 
+  int fDiffPenalty_S, fDiffPenalty_S1, fDiffPenalty_S2, fDiffPenalty_S3, fDiffPenalty_S4, fDiffPenalty_S5;    // ken hachikubo change 12.29 
 
 
   // Parameters

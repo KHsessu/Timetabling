@@ -1,7 +1,79 @@
-evaluator.cpp:41:  fConf_EventEvent = new int* [ fNumOfEvent ];
-evaluator.cpp:43:    fConf_EventEvent[ i ] = new int [ fNumOfEvent ];
-evaluator.cpp:230:      fConf_EventEvent[ i ][ j ] = 0;
-evaluator.cpp:249:        ++fConf_EventEvent[e1][e2];
-evaluator.cpp:269:        ++fConf_EventEvent[e1][e2];
-operator.cpp:62:  fConf_EventEvent = eval->fConf_EventEvent;
-operator.cpp:205:        assert( fConf_EventEvent[ event ][ fEvent_TimeRoom[t][rr] ] != 1);
+23-  indi.fPenalty_S2 = fPenalty_S2;
+24-  indi.fPenalty_S3 = fPenalty_S3;
+25:  indi.fPenalty_S4 = fPenalty_S4; // ken hachikubo add 12.29
+26-  indi.fPenalty_S5 = fPenalty_S5;
+27-  indi.fEvaluationValue = (double)fPenalty_S;  // depend on the strategy
+--
+221-  int penalty_S2 = fPenalty_S2;
+222-  int penalty_S3 = fPenalty_S3;
+223:  int penalty_S4 = fPenalty_S4;   // ken hachikubo add 12.29
+224-  int penalty_S5 = fPenalty_S5;
+225-  printf("S1=%d S2=%d S3=%d S4=%d S5=%d\n",penalty_S1,penalty_S2,penalty_S3,penalty_S4,penalty_S5);
+--
+228-  assert( penalty_S2 == fPenalty_S2 );
+229-  assert( penalty_S3 == fPenalty_S3 );
+230:  assert( penalty_S4 == fPenalty_S4 );
+231-  assert( penalty_S5 == fPenalty_S5 );
+232-  assert( penalty_S1 + penalty_S2 + penalty_S3 + penalty_S4 + penalty_S5 == fPenalty_S );
+--
+365-  fPenalty_S3 = penalty_S3;
+366-  
+367:  // fPenalty_S4
+368-  penalty_S4 = 0;
+369-  for(int e = 0; e < fNumOfEvent; e++){
+--
+375-  }
+376-  printf("S4=%d\n",penalty_S4);
+377:  fPenalty_S4 = penalty_S4;
+378-  /*
+379-  // fPenalty_S5
+--
+521-  }
+522-
+523:  fDiffPenalty_S4 = 0;
+524-  if( slot < 3 && slot + fEvent_TimeRequest[ event ] > 3 )
+525:    fDiffPenalty_S4++;
+526-  
+527-  /*
+--
+561-  */
+562-  
+563:  fDiffPenalty_S = fDiffPenalty_S1 + fDiffPenalty_S2 + fDiffPenalty_S3 + fDiffPenalty_S4;
+564-
+565-  return fDiffPenalty_S;
+--
+573-  fPenalty_S2 = 0;
+574-  fPenalty_S3 = 0;
+575:  fPenalty_S4 = 0;
+576-  fPenalty_S5 = 0;
+577-
+--
+716-  
+717-  slot =  time % fNumOfTimeInDay;
+718:  //  fPenalty_S4
+719-  if( slot < 3 && slot + fEvent_TimeRequest[ event ] > 3);
+720:  --fPenalty_S4;
+721-  // fPenalty_S1
+722-  for( int tr = 0; tr < fEvent_TimeRequest[ event ]; ++tr ){
+--
+799-  */
+800-
+801:  //  printf("eject event%d S1=%d S2=%d S3=%d S4=%d S5=%d\n", event, fPenalty_S1, fPenalty_S2, fPenalty_S3, fPenalty_S4, fPenalty_S5);
+802:  fPenalty_S = fPenalty_S1 + fPenalty_S2 + fPenalty_S3 + fPenalty_S4 + fPenalty_S5;
+803-}
+804-
+--
+958-  
+959-  slot =  time % fNumOfTimeInDay;
+960:  // fPenalty_S4
+961-  if( slot < 3 && slot + fEvent_TimeRequest[ event ] > 3)
+962:    ++fPenalty_S4;
+963-  // fPenalty_S1
+964-  for( int tr = 0; tr < fEvent_TimeRequest[ event ]; ++tr ){
+--
+1007-
+1008-  
+1009:  //  printf("insert event%d S1=%d S2=%d S3=%d S4=%d S5=%d\n", event, fPenalty_S1, fPenalty_S2, fPenalty_S3, fPenalty_S4, fPenalty_S5);
+1010:  fPenalty_S = fPenalty_S1 + fPenalty_S2 + fPenalty_S3 + fPenalty_S4 + fPenalty_S5;
+1011-
+1012-
