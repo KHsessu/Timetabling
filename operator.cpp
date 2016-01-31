@@ -206,17 +206,6 @@ void TOperator::CheckValid()
     }
   }
   
-  // fConf_EventEvent
-  /*
-  for( int t = 0; t < fNumOfTime; ++t){
-    for( int r = 0; r < fNumOfRoom -1; ++r){
-      event = fEvent_TimeRoom[ t ][ r ];
-      for(int rr = r+1; fNumOfRoom; ++rr){
-        assert( fConf_EventEvent[ event ][ fEvent_TimeRoom[t][rr] ] != 1);
-      }
-    }
-  }
-  */
   int penalty_S1 = fPenalty_S1;
   int penalty_S2 = fPenalty_S2;
   int penalty_S3 = fPenalty_S3;

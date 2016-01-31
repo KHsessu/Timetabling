@@ -250,12 +250,11 @@ void TEvaluator::SetInstance( char* filename )
       }
     }
   }
-
   
   printf("Count2Student = %d \n", count);
   
   /* ken hachikubo add 12.25 */
-   
+
   for (int p = 0; p < fNumOfProf; ++p) {
     numOfEvent = 0;
     for (int i = 0; i < fNumOfEvent; ++i) {
@@ -272,13 +271,14 @@ void TEvaluator::SetInstance( char* filename )
       }
     }
   }
-  /*   
-  for( int i = 0; i < fNumOfEvent; ++i ){
-    for( int j = 0; j < fNumOfEvent; ++j )
-      printf("%3d ",fConf_EventEvent[ i ][ j ]);
-    printf("\n");
+  
+  for(int i = 0; i < fNumOfEvent; ++i){
+    for(int j = 0; j < fNumOfEvent; ++j ){
+      if(fConf_EventEvent[ i ][ j ] == 1)
+        printf("event1=%d event2=%d\n",i,j);
+    }
   }
-  */
+  
   printf("Count2Prof + Count2Student = %d \n", count);
 
   count = 0;
