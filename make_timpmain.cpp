@@ -3,22 +3,28 @@
 #include<math.h>
 #include<time.h>
 
+
 int make_tim(void);
 int read_file(char* filename);
 int write_file(char* filename);
 
 
-
+int fNumOfDay;
 int fNumOfStudent;
 int fNumOfProf;
+int fNumOfDepEvent; //ひと学科の授業数
+int fNumOfOtherEvent; //一般教養の授業数
 int fNumOfEvent;
 int fNumOfTime;
 int fNumOfTimeInDay;
 int fNumOfRoom;
 int fNumOfFeature;
+int fNumOfDepStudent;
+int fNumOfDepProf;
+int fNumOfDepartment;
+int fNumOfGrade;
+int fNumOfStudent_G;
 
-
-int *fEvent_Feature;
 int *size_room;
 int **studentEvent;
 int **profEvent;
@@ -27,7 +33,10 @@ int **roomFeature;
 int **eventFeature;
 int *fEvent_Required;
 int *fEvent_TimeRequest;
-
+int *fEvent_Department;
+int *fEvent_Grade;
+int *fStudent_Department;
+int *fStudent_Grade;
 
 int make_random(void){
 
@@ -37,24 +46,25 @@ int make_random(void){
 
 
 int main(int argc, char* argv[]){
-    
-  char* readfile = argv[ 1 ];
-  char* writefile = argv[ 2 ];
-
   
+  
+  char* readfile;
+  char* writefile;
+
+
   if ( argc != 3){
     printf( "Error: argc = %d\n",argc);
     return -1;
   }
-
-  //  printf("point1\n");
+  
   //引数を移す
-  //  printf("point2\n");
+  readfile = argv[ 1 ];
+  writefile = argv[ 2 ];
+
 
   //////////////////////////////
   read_file( readfile );
-  //  printf("point3\n");
-  make_tim();          
+  make_tim();           //
 
 
   write_file( writefile );
@@ -62,99 +72,159 @@ int main(int argc, char* argv[]){
   return 0;
 }
 
-int read_file(char* readfilename){
+int read_file(char* filename){
   FILE* fp;
-  char filename[80];
-  
   int dumy;
-
-  sprintf( filename, "%s", readfilename);
-  printf("%s\n",filename);
-  if( (fp = fopen(filename, "r")) == NULL){
-    printf("can not open fp\n");
-    exit( 1 );
-  }else
-    printf("open file\n");
-
+  fp = fopen(filename, "r");
+  fscanf(fp, "%d %d %d %d %d %d %d", fNumOfDepEvent, fNumOfOtherEvent, fNumOfRoom, fNumOfDepStudent, fNumOfDepProf, fNumOfDepartment, fNumOfGrade);
   
-  fscanf(fp, "%d %d %d %d %d %d %d", &fNumOfEvent, &fNumOfRoom, &fNumOfFeature, &fNumOfStudent, &fNumOfProf, &fNumOfTime, &fNumOfTimeInDay);
-
-  printf( "%d %d %d %d %d %d %d\n", fNumOfEvent, fNumOfRoom, fNumOfFeature, fNumOfStudent, fNumOfProf, fNumOfTime, fNumOfTimeInDay );
-  printf( " read file complete !!\n" );
-  
-  fEvent_Feature = new int [ fNumOfEvent ]; // イベントのの学年、学科、必修を数字で表す。
-
-  size_room = new int [ fNumOfRoom ];
-    
-  studentEvent = new int *[ fNumOfStudent ];
-  for( int s = 0; s < fNumOfStudent; ++s)
-    studentEvent[ s ] = new int [ fNumOfEvent ]; 
-  
-  profEvent = new int *[ fNumOfProf ];
-  for( int p = 0; p < fNumOfProf; ++p )
-    profEvent[ p ] = new int [ fNumOfEvent ];
-
-  fProfCantDo = new int *[ fNumOfProf ];
-  for( int p = 0; p < fNumOfProf; ++p)
-    fProfCantDo[ p ] = new int [ fNumOfTime ];
-  
-  roomFeature = new int *[ fNumOfRoom ];
-  for( int r = 0; r < fNumOfRoom; ++r )
-    roomFeature[ r ] = new int [ fNumOfFeature ];
-
-  eventFeature = new int *[ fNumOfEvent ];
-  for( int e = 0; e < fNumOfEvent; ++e )
-    eventFeature[ e ] = new int [ fNumOfFeature ];
-  
-  fEvent_Required = new int [ fNumOfEvent ];
-  fEvent_TimeRequest = new int [ fNumOfEvent ];
-
-  //  for( int i; i < fNumOfEvent; ++i )
-  //  fscanf( fp, "%d", fEvent_Feature[ i ] );
-  
-  if( fscanf(fp, "%d", &dumy ) != EOF){
-    printf("error dumy can read\n");
-    exit( 1 );
+  fNumOfTime = 25;
+  fNumOfDay = 5;
+  fNumOfTimeInDay = 5;
+  fNumOfFeature = fNumOfStudent * 2;
+  fNumOfEvent = (fNumOfDepEvent * fNumOfDepartment) + fNumOfOtherEvent;
+  fNumOfStudent = fNumOfDepStudent * fNumOfDepartment;
+  fNumOfProf = fNumOfDepProf * fNumOfDepartment;
+  fNumOfStudent_G = fNumOfDepStudent / fNumOfGrade;
+  if( fNumOfDepStudent % fNumOfGrade != 0){
+    printf("Error: illigal student number");
+    exit(1);
   }
   
+  size_room = new int [ fNumOfRoom ];
+
+  /* [ stuent ][ event ] -> 1:student attends event 0:otherwise */
+  studentEvent = new int* [ fNumOfStudent ];
+  for( int s = 0; s < fNumOfStudent; ++s )
+    studentEvent[ s ] = new int [ fNumOfEvent ];
+  /* [ professor ][ event ] -> 1:professor do event 0:otherwise */
+  profEvent = new int* [ fNumOfProf ];
+  for( int p = 0; p < fNumOfProf; ++p )
+    profEvent[ p ] = new int [ fNumOfEvent ];
+  /* [ prof ] [ time ] -> 1:prof can't do this event in time */
+  fProfCantDo = new int* [ fNumOfProf ];
+  for( int p = 0; p < fNumOfProf; ++p)
+    fProfCantDo[ p ] = new int [ fNumOfTime ];
+  /* [ room ][ feature ] -> room has feature */
+  roomFeature = new int* [ fNumOfRoom ];
+  for( int r = 0; r < fNumOfRoom; ++r )
+    roomFeature[ r ] = new int [ fNumOfFeature ];
+  /* [ event ][ feature ] -> event requires feature */
+  eventFeature = new int* [ fNumOfEvent ];
+  for( int i = 0; i < fNumOfEvent; ++i )
+    eventFeature[ i ] = new int [ fNumOfFeature ];
+  /* [ event ] -> 1:this event is required subject */
+  fEvent_Required = new int [ fNumOfEvent ];
+  /* [ event ] -> timeslot nessesary to the event */
+  fEvent_TimeRequest = new int [ fNumOfEvent ];
+
+  fEvent_Department = new int [ fNumOfEvent ];
+
+  fEvent_Grade = new int [ fNumOfEvent ];
+  
+  fStudent_Department = new int [ fNumOfStudent ];
+
+  fStudent_Grade = new int [ fNumOfStudent ];
+
+  fEvent_Grade = new int [ fNumOfEvent ];
+
+  fEvent_Department = new int [ fNumOfDepEvent ];
+  fEvent_Grade = new int [ fNumOfDepEvent ];
+  
+  ////////////////////////////////////////
+  /* scanf                              */
+
+  for( int e = 0; e < fNumOfDepEvent; ++e )
+    fscanf( fp, "%d", fEvent_Grade[ e ] );
+  
+  for( int e = 0; e < fNumOfDepEvent; ++e )
+    fscanf( fp, "%d", fEvent_TimeRequest[ e ]);
+  
+  for( int e = 0; e < fNumOfDepEvent; ++e )
+    if( fscanf( fp, "%d", fEvent_Required[ e ]) == EOF ){
+      printf("Read File Error");
+      exit(1);
+    }
+  
+  if( fscanf( fp, "%d",dumy) != EOF){
+    printf("Read File Error");
+    exit(1);
+  }
   fclose( fp );
+  printf("file read complete\n");
+
+  ///////////////////////////////////////
+  
+  int event = 0;
+  for( int d = 0; d < fNumOfDepartment; ++d ){
+    for( int ed = 0; ed < fNumOfDepEvent; ++ed ){
+      event = (d * fNumOfDepEvent) + ed;
+      printf("dep=%d\n",event);
+      fEvent_Grade[ event ] = fEvent_Grade[ ed ];
+      fEvent_Department[ event ] = fEvent_Grade[ ed ] * (d + 1);
+      fEvent_TimeRequest[ event ] = fEvent_TimeRequest[ ed ];
+      fEvent_Required[ event ] = fEvent_Required[ ed ] * (d + 1);
+    }
+  }
+  for( int e = 0; e < fNumOfOtherEvent; ++e ){
+    event++;
+    fEvent_Grade[ event ] = 1;
+    fEvent_Department[ event ] = 0;
+    fEvent_TimeRequest[ event ] = 1;
+    fEvent_Required[ event ] = 0;
+  }
+
+  
+  int student = 0;
+  for( int d = 0; d < fNumOfDepartment; ++d ){
+    for( int g = 0; g < fNumOfGrade; ++g ){
+      for( int s = 0; s < fNumOfStudent_G; ++s){
+        student = s + (g + fNumOfStudent_G) + ( d * fNumOfDepStudent );
+        printf("student=%d\n",student); //check
+        fStudent_Grade[ student ] = g;
+        fStudent_Department[ student ] = d;
+      }
+    }
+  }
 }
 
 
-int write_file(char* writefilename){
+int write_file(char* filename){
   FILE* fp;
-  char filename[80];
-
-  sprintf(filename, "%s.tim",writefilename);
+  
   fp = fopen(filename, "a");
   
   fprintf( fp,"%d %d %d %d %d", fNumOfEvent, fNumOfRoom, fNumOfFeature, fNumOfStudent, fNumOfProf);
 
   
   /////////* write file *////////
-  
   for( int r = 0; r < fNumOfRoom; ++r )
     fprintf( fp, "%d", &size_room[ r ] );
   
-  for( int s = 0; s < fNumOfStudent; ++s )
-    for( int i = 0; i < fNumOfEvent; ++i )
+  for( int s = 0; s < fNumOfStudent; ++s ){
+    for( int i = 0; i < fNumOfEvent; ++i ){
       fprintf( fp, "%d", &studentEvent[ s ][ i ] );
-  
+    }
+  }
+
   for( int p = 0; p < fNumOfProf; ++p )
     for( int i = 0; i < fNumOfEvent; ++i )
       fprintf( fp, "%d", &profEvent[ p ][ i ] );
   
+  
   for( int p = 0; p < fNumOfProf; ++p)
     for (int t = 0; t < fNumOfTime; ++t)
-      fprintf( fp, "%d", &fProfCantDo[ p ][ t ] );
+      fprintf( fp, "%d", &fProfCantDo);
   
   for( int r = 0; r < fNumOfRoom; ++r )
     for( int f = 0; f < fNumOfFeature; ++f )
       fprintf( fp, "%d", &roomFeature[ r ][ f ] );
-
-  for( int i = 0; i < fNumOfEvent; ++i )
-    for( int f = 0; f < fNumOfFeature; ++f )
+  
+  for( int i = 0; i < fNumOfEvent; ++i ){
+    for( int f = 0; f < fNumOfFeature; ++f ){
       fprintf( fp, "%d", &eventFeature[ i ][ f ] );
+    }
+  }
 
   for( int i = 0; i < fNumOfEvent; ++i )
     fprintf( fp, "%d", &fEvent_Required [ i ] );
@@ -166,70 +236,7 @@ int write_file(char* writefilename){
 
 
 int make_tim(void){
-  int s = 0;
-  int g = 0;
-  int d = 1;
-  int flag = 0;
-  int numofdepartment = 8;	// 各学科 0:共通講義
-  int grade = 4;
-  int DivideStu = ( fNumOfStudent / numofdepartment ) / grade;
-
-  printf( "%d %d %d %d \n", fNumOfStudent, numofdepartment, grade, DivideStu );
-  while(1){
-    if(flag == 0){		// DivideStuで学年学科を振り分けていく
-      if( s % DivideStu == 0 ){
-	++g;
-	if( g == grade ){
-	  g = 0;
-	  ++d;
-	  if( d == numofdepartment ){
-	    flag = 1;
-	    g = 0;
-	    d = 1;
-	  }
-	}	
-      }
-    }else{			// 余った生徒を振り分ける
-      ++g;
-      if( g == grade ){
-	g = 0;
-	++d;
-	if( d == numofdepartment ){
-	  g = 0;
-	  d = 0;
-	}
-      }
-    }
-    
-    /* 処理開始 */
-    for( int i = 0; i < fNumOfEvent; ++i ){
-      if ( g == ( fEvent_Feature[ i ] / 1000 ) ){ // 学生と授業の学科が一致
-	if( d == ( fEvent_Feature[ i ] / 100 ) ){ // 学生と授業の学年が一致
-	  if( ( fEvent_Feature[ i ] / 10 ) == 1 ){// 授業が必修
-	    studentEvent[ s ][ i ] = 1;
-	  }else{		// 授業が選択
-	     
-	  }
-	}else{			// 学年が不一致
-	  
-	}
-      }else if( fEvent_Feature[ i ] / 1000 == 0 ){			// 共通授業
-	
-      }else{			// 学科が不一致
-	studentEvent[ s ][ i ] = 0;
-      }
-    }
-    /* 処理終了 */
-    
-    ++s;
-    printf( "%d %d %d\n", g, d, s);
-    if( s == fNumOfStudent ) break;
-    
-    
-    for( int e = 0; e < fNumOfEvent; ++e ){
-      
-    }
-  } // end of while
+  
   
   
 }
