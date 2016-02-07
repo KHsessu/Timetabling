@@ -57,7 +57,7 @@ void TEnvironment::Result( int numOfTrial, char* dstFile )
 void TEnvironment::DoIt()
 {
   fTimeStart = clock();
-
+  int failcount = 0;
   /*
   tSearch->MakeInitRandSol();
   tSearch->LS_FindFeasible();
@@ -71,6 +71,9 @@ void TEnvironment::DoIt()
     tSearch->LS_MakeFeasible();         // 内容見てるなう。
     if( tSearch->fNumOfEjectEvent == 0 )
       break;
+    failcount++;
+    if(failcount > 5)
+      exit(1);
   } 
   // tSearch->Eject_NoStudentEvent();   // Option
 

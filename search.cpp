@@ -50,7 +50,7 @@ void TSearch::MakeInitRandSol()
   int event, time, room;
   int permu[ fNumOfEvent ];
   int find;
-
+  
   this->ResetSol();
 
   tRand->Permutation( permu, fNumOfEvent, fNumOfEvent );
@@ -115,7 +115,7 @@ void TSearch::LS_MakeFeasible()
   while( 1 )
   {
     ++fNumOfIterLS;
-
+  
     // if( fNumOfIterLS % 1 == 0 )
     // printf( "iter = %d: %d \n", fNumOfIterLS, fNumOfEjectEvent ); fflush( stdout );
 
@@ -214,14 +214,29 @@ void TSearch::LS_MakeFeasible()
 	}	  
       }
     }
+    
+    //    printf("%d\n",numOfCandi);
+    //    assert( numOfCandi != 0 );   
+    
     if( numOfCandi == 0){//初期解生成が詰んだとき
       printf("numOfCandi = %d\n",numOfCandi);
+      printf("eventIn=%d\n",eventIn);
       printf("fNumOfEjectEvent = %d\n",fNumOfEjectEvent);
-      printf("%3d \n",fListEjectEvent[ 0 ]);
+      printf("fListEjectEvent[ 0 ] = %3d \n",fListEjectEvent[ 0 ]);
+      printf("r\\t ");
+      for(int t = 0; t < fNumOfTime; ++t)
+        printf("%3d ",t);
+      printf("\n");
+      for( int r = 0; r < fNumOfRoom; ++r ){
+        printf("%3d ",r);
+        for( int t = 0; t < fNumOfTime; ++t ){
+          printf("%3d ",fEvent_TimeRoom[ t ][ r ]);
+        }
+        printf("\n");
+      }
+      fflush(stdout);   
       return;
     }
-    // assert( numOfCandi != 0 );   
-      //    printf("%d\n",numOfCandi);
     
     rr = rand() % numOfCandi;
     eventIn = candi[ 3*rr ];
@@ -235,19 +250,19 @@ void TSearch::LS_MakeFeasible()
     for( int tr = 0; tr < fEvent_TimeRequest[ eventIn ]; ++tr ){
       event = fEvent_TimeRoom[ timeIn + tr ][ roomIn ];
       if( event != -1 ){
-        printf("eject1\n");
+        //        printf("eject1\n");
         this->Eject( event, 1 );
       }
       
       for( int r = 0; r < fNumOfRoom; ++r ){
         event = fEvent_TimeRoom[ timeIn + tr ][ r ];
         if( r != roomIn && event != -1 && fConf_EventEvent[ eventIn ][ event ] != 0 ){
-          printf("eject2\n");
+          //          printf("eject2\n");
           this->Eject( event, 1 );
         }
       }
     }
-    printf("Insert( %d %d %d)\n", eventIn, timeIn, roomIn);
+    //    printf("Insert( %d %d %d)\n", eventIn, timeIn, roomIn);
     this->Insert( eventIn, timeIn, roomIn, 1 );    
     //    assert( tmp + diffMin == fNumOfEjectEvent ); // for check
     //}
@@ -259,20 +274,22 @@ void TSearch::LS_MakeFeasible()
     break;
     //if( fNumOfIterLS > fMaxNumOfIterLS )
     // break;
-    
+    if(fNumOfIterLS > 100000 ){
+      printf("fail MakeFeasible()\n");
       printf("r\\t ");
-  for(int t = 0; t < fNumOfTime; ++t)
-    printf("%3d ",t);
-  printf("\n");
-  for( int r = 0; r < fNumOfRoom; ++r ){
-    printf("%3d ",r);
-    for( int t = 0; t < fNumOfTime; ++t ){
-      printf("%3d ",fEvent_TimeRoom[ t ][ r ]);
+      for(int t = 0; t < fNumOfTime; ++t)
+        printf("%3d ",t);
+      printf("\n");
+      for( int r = 0; r < fNumOfRoom; ++r ){
+        printf("%3d ",r);
+        for( int t = 0; t < fNumOfTime; ++t ){
+          printf("%3d ",fEvent_TimeRoom[ t ][ r ]);
+        }
+        printf("\n");
+      }
+      fflush(stdout);    
+      return;
     }
-	printf("\n");
-  }
-  fflush(stdout);    
-  
     this->CheckValid(); 
   }
   

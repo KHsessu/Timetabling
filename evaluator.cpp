@@ -24,9 +24,9 @@ void TEvaluator::SetInstance( char* filename )
   int **eventFeature;
   int numOfFeature;
 
-  fNumOfTime = 45;
+  fNumOfTime = 25;
   fNumOfDay = 5;
-  fNumOfTimeInDay = 9; 
+  fNumOfTimeInDay = 5; 
   /////////////////////////////////////////////////
   fp = fopen( filename, "r" );
   /* ken hachikubo modify 12.12. */
@@ -119,7 +119,7 @@ void TEvaluator::SetInstance( char* filename )
   /* ken hachikubo add 12.12. */
   for( int p = 0; p < fNumOfProf; ++p )
     for( int i = 0; i < fNumOfEvent; ++i )
-      fscanf( fp, "%d", &profEvent[ p ][ i ] );
+      fscanf( fp, "%d", &profEvent[ p ][ i ]);
 
   for( int p = 0; p < fNumOfProf; ++p)
     for (int t = 0; t < fNumOfTime; ++t)
@@ -140,21 +140,21 @@ void TEvaluator::SetInstance( char* filename )
 
   /* ken hachikubo add 12.14 */
   for( int i = 0; i < fNumOfEvent; ++i )
-    if( fscanf( fp, "%d", &fEvent_Required [ i ] ) == EOF ){
-	printf("Error1!\n");
+    if( fscanf( fp, "%d", &fEvent_Required[ i ] ) == EOF ){
+	printf("Error2!\n");
 	exit( 1 );
     }
 
   
   for( int i = 0; i < fNumOfEvent; ++i )
-    if( fscanf( fp, "%d", &fEvent_TimeRequest [ i ] ) == EOF ){
-	printf("Error1!\n");
+    if( fscanf( fp, "%d", &fEvent_TimeRequest[ i ] ) == EOF ){
+	printf("Error3!\n");
 	exit( 1 );
     }
 
 
   if( fscanf( fp, "%d", &dumy ) != EOF ){
-    printf( "Error2!\n" );
+    printf( "Error4!\n" );
     exit( 1 ); 
   }
 
@@ -215,6 +215,7 @@ void TEvaluator::SetInstance( char* filename )
     int check = 0;
     for( int r = 0; r < fNumOfRoom; ++r ){
       check += fAvail_EventRoom[ i ][ r ];
+      //      printf("NumOfAvail_EventRoom[%d][%d]=%d\n",i,r,fAvail_EventRoom[i][r]);
     }
     //    if( check == 0 ){
     //      fAvail_EventRoom[ i ][ tRand->Integer(0, 4 ) ] = 1;
@@ -271,14 +272,14 @@ void TEvaluator::SetInstance( char* filename )
       }
     }
   }
-  
+  /*  
   for(int i = 0; i < fNumOfEvent; ++i){
     for(int j = 0; j < fNumOfEvent; ++j ){
       if(fConf_EventEvent[ i ][ j ] == 1)
-        printf("event1=%d event2=%d\n",i,j);
+      printf("event1=%d event2=%d\n",i,j);
     }
   }
-  
+  */
   printf("Count2Prof + Count2Student = %d \n", count);
 
   count = 0;

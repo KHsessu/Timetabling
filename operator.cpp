@@ -211,7 +211,7 @@ void TOperator::CheckValid()
   int penalty_S3 = fPenalty_S3;
   int penalty_S4 = fPenalty_S4;   // ken hachikubo add 12.29
   int penalty_S5 = fPenalty_S5;
-  printf("S1=%d S2=%d S3=%d S4=%d S5=%d\n",penalty_S1,penalty_S2,penalty_S3,penalty_S4,penalty_S5);
+  //  printf("S1=%d S2=%d S3=%d S4=%d S5=%d\n",penalty_S1,penalty_S2,penalty_S3,penalty_S4,penalty_S5);
   this->CalEvaluation();
   assert( penalty_S1 == fPenalty_S1 );
   assert( penalty_S2 == fPenalty_S2 );
@@ -296,7 +296,7 @@ void TOperator::CalEvaluation()
         ++penalty_S1;
     }
   }
-  printf("S1=%d ",penalty_S1);
+  //  printf("S1=%d ",penalty_S1);
   fPenalty_S1 = penalty_S1;
   
   // fPenalty_S2 生徒の同日における授業数の偏り
@@ -323,7 +323,7 @@ void TOperator::CalEvaluation()
       penalty_S2 += abs((int)e_diff);	// 他のペナルティとのバランスを考える
     }
   }
-  printf("S2=%d ",penalty_S2);
+  //  printf("S2=%d ",penalty_S2);
   fPenalty_S2 = penalty_S2;
   
   // fPenalty_S3 教授の曜日における授業数の偏り
@@ -350,7 +350,7 @@ void TOperator::CalEvaluation()
       penalty_S3 += abs((int)e_diff);	// 他のペナルティとのバランスを考える
     }
   }
-  printf("S3=%d ",penalty_S3);
+  //  printf("S3=%d ",penalty_S3);
   fPenalty_S3 = penalty_S3;
   
   // fPenalty_S4 連続授業が昼休みをまたいでいるかどうかでペナルティ
@@ -362,7 +362,7 @@ void TOperator::CalEvaluation()
       ++penalty_S4;
     }
   }
-  printf("S4=%d ",penalty_S4);
+  //  printf("S4=%d ",penalty_S4);
   fPenalty_S4 = penalty_S4;
   
   // fPenalty_S5 必修が被っている時限数がペナルティ
@@ -380,7 +380,7 @@ void TOperator::CalEvaluation()
     }
   }
   
-  printf("S5=%d\n",penalty_S5);
+  //  printf("S5=%d\n",penalty_S5);
   fPenalty_S5 = penalty_S5;
   
   fflush(stdout);
