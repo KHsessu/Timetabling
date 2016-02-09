@@ -1,0 +1,28 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string>
+#include <fstream>
+using namespace std;
+
+int main( int argc, char* argv[])
+{
+
+  int timetable[50][50];
+  int fTimeRoom_Event[400][2];
+  if(argc != 2)
+    return -1;
+  
+  char* DstFile argv[1];
+
+  FILE *fp;
+  char filename[80];
+  sprintf(filename,"./%s_Sol", DstFile);
+
+  if((fp = fopen(filename,"r")) == NULL){
+    printf("erroe\n");
+    return -1;
+  }
+
+
+  
+}
