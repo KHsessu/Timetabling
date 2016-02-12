@@ -43,7 +43,7 @@ void TEnvironment::Result( int numOfTrial, char* dstFile )
 
   sprintf( filename, "./result/%s_Result", dstFile );
   fp = fopen( filename, "a" );
-  fprintf( fp, "%d %d %lf %d %d %d %d\n", numOfTrial, tSearch->fNumOfIterFindBest  , (double)(fTimeEnd - fTimeStart)/(double)CLOCKS_PER_SEC, (int)tIndi.fEvaluationValue , tIndi.fPenalty_S1 , tIndi.fPenalty_S2 , tIndi.fPenalty_S3 );
+  fprintf( fp, "%d %d %lf %d %d %d %d %d %d %d\n", numOfTrial, tSearch->fNumOfIterFindBest  , (double)(fTimeEnd - fTimeStart)/(double)CLOCKS_PER_SEC, (int)tIndi.fEvaluationValue , tIndi.fPenalty_S1 , tIndi.fPenalty_S2 , tIndi.fPenalty_S3, tIndi.fPenalty_S4, tIndi.fPenalty_S5, tIndi.fPenalty_S6 );
   fclose(fp);
 
   sprintf( filename, "./result/%s_Timetablle", dstFile );

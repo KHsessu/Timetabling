@@ -10,7 +10,7 @@ debug: main.cpp env.cpp evaluator.cpp indi.cpp operator.cpp search.cpp rand.cpp 
 	g++ -g -Wall -o jikken  main.cpp env.cpp evaluator.cpp indi.cpp operator.cpp search.cpp rand.cpp  sort.cpp -lm
 
 run: jikken.exe
-	./jikken.exe 1 DST small1k.tim 1 10 100000
+	./jikken.exe 1 DST tokudai7k.tim 1 10 100000
 
 timtest: jikken.exe
 	./jikken.exe 1 kari kari.tim 1 10 100000

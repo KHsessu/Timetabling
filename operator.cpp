@@ -24,6 +24,7 @@ void TOperator::TransToIndi( TIndi& indi )
   indi.fPenalty_S3 = fPenalty_S3;
   indi.fPenalty_S4 = fPenalty_S4; // ken hachikubo add 12.29
   indi.fPenalty_S5 = fPenalty_S5;
+  indi.fPenalty_S6 = fPenalty_S6;
   indi.fEvaluationValue = (double)fPenalty_S;  // depend on the strategy
 
   for( int e = 0; e < fNumOfEvent; ++e ){
@@ -219,15 +220,17 @@ void TOperator::CheckValid()
   assert( penalty_S3 == fPenalty_S3 );
   assert( penalty_S4 == fPenalty_S4 );
   assert( penalty_S5 == fPenalty_S5 );
-  assert( penalty_S1 + penalty_S2 + penalty_S3 + penalty_S4 + penalty_S5 == fPenalty_S );
+  assert( penalty_S1 + penalty_S2 + penalty_S3 + penalty_S4 + penalty_S5 + penalty_S6 == fPenalty_S );
 }
 
 void TOperator::CalEvaluation()
 {
-  int penalty_H1, penalty_S1, penalty_S2, penalty_S3, penalty_S4, penalty_S5;
+  int penalty_H1, penalty_S1, penalty_S2, penalty_S3, penalty_S4, penalty_S5, penalty_S6;
   int time;
   int count;
+  int event;
   int event1, event2;
+  int professor;
   int slot;
   double e_ave, e_day, e_diff;
 
@@ -384,9 +387,24 @@ void TOperator::CalEvaluation()
   
   //  printf("S5=%d\n",penalty_S5);
   fPenalty_S5 = penalty_S5;
+
+  // fPenalty_S6教授の都合の悪い時間帯に行わないこと
+  penalty_S6 = 0;
+  for( int t = 0; t < fNumOfTime; ++t){  
+    for( int r = 0; r < fNumOfRoom; ++r ){
+      event = fEvent_TimeRoom[ t ][ r ];
+      for( int p = 0; p < fNumOfProf_Event[ event ]; ++p){
+	professor = fListProf_Event[ event ][ p ];
+	if( fProfCantDo[ professor ][ t ] == 1)
+	  penalty_S6+=100;
+      }
+      
+    }
+  }
+  fPenalty_S6 = penalty_S6;
   
   fflush(stdout);
-  fPenalty_S = penalty_S1 + penalty_S2 + penalty_S3 + penalty_S4 + penalty_S5 + fPenalty_S6;;
+  fPenalty_S = penalty_S1 + penalty_S2 + penalty_S3 + penalty_S4 + penalty_S5 + penalty_S6;;
 }
 
 
@@ -528,17 +546,15 @@ int TOperator::DiffPenalty_S_Insert( int event, int time )
     }
   }
   
-    fDiffPenalty_S6 = 0;
-    /*
-    for( int p = 0; p < fNumOfProf_Event[ event ]; ++p ){
+  fDiffPenalty_S6 = 0;
+  for( int p = 0; p < fNumOfProf_Event[ event ]; ++p ){
     prof = fListProf_Event[ event ][ p ];
     for( int tr = 0; tr < fEvent_TimeRequest[ event ]; ++tr ){
-    if( time + tr == fProfCantDo[ prof ][ time + tr ] == 1)
-    fDiffPenalty_S6++;
+      if( fProfCantDo[ prof ][ time + tr ] == 1)
+	fDiffPenalty_S6+=100;
     }
-    }
-  */
-
+  }
+  
 
 
 
@@ -612,12 +628,12 @@ void TOperator::ResetSol()
   tRand->Permutation( listevent , fNumOfEvent, fNumOfEvent );
   
   listn = fNumOfEvent-1;
-  for( int t = 1; t < fNumOfTimeInDay; ++t ){
-    count = 0;
+  for( int t = 1; t < fNumOfTimeInDay+1; ++t ){
     for( int i = 0; i < fNumOfEvent; ++i ){
       if( t == fEvent_TimeRequest[ listevent[i] ]){
         fListEjectEvent[ listn ] = listevent[ i ];
         --listn;
+	printf("%d\n",listn);
       }
     }
   }
@@ -809,18 +825,18 @@ void TOperator::Eject( int event, int flag )
         fPenalty_S5 -= 500;
     }
   }
-  /*
+  
   //  fPenalty_S6
   for( int p = 0; p < fNumOfProf_Event[ event ]; ++p ){
     professor = fListProf_Event[ event ][ p ];
     for(int tr = 0; tr < fEvent_TimeRequest[ event ]; ++tr ){
       if( fProfCantDo[ professor ][ time + tr ] == 1){
-        --fPenalty_S6;
+        fPenalty_S6-=100;
       }
     }
-  }  
-  printf("fPenalty_S6 = %d\n",fPenalty_S6);
-  */
+  }
+  //  printf("fPenalty_S6 = %d\n",fPenalty_S6);
+  
     /*
     // fPenalty_S3;
     
@@ -1077,18 +1093,18 @@ void TOperator::Insert( int event, int time, int room, int flag )
     }
   }
 
-  /*
+  
   //  fPenalty_S6
   for( int p = 0; p < fNumOfProf_Event[ event ]; ++p ){
     professor = fListProf_Event[ event ][ p ];
     for(int tr = 0; tr < fEvent_TimeRequest[ event ]; ++tr ){
       if( fProfCantDo[ professor ][ time + tr ] == 1){
-        ++fPenalty_S6;
+        fPenalty_S6+=100;
       }
     }
   }
-  printf("fPenalty_S6 = %d\n",fPenalty_S6);
-  */
+  //  printf("fPenalty_S6 = %d\n",fPenalty_S6);
+  
   //  printf("insert event%d S1=%d S2=%d S3=%d S4=%d S5=%d\n", event, fPenalty_S1, fPenalty_S2, fPenalty_S3, fPenalty_S4, fPenalty_S5);
   fPenalty_S = fPenalty_S1 + fPenalty_S2 + fPenalty_S3 + fPenalty_S4 + fPenalty_S5 + fPenalty_S6;
 

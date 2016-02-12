@@ -129,7 +129,7 @@ void TSearch::LS_MakeFeasible()
         for( int t = 0; t < fNumOfTime; ++t ){
         
           if( (t % fNumOfTimeInDay) + fEvent_TimeRequest[ eventIn ] -1  >= fNumOfTimeInDay ){  // H6 check
-            printf("%d %d\n",eventIn,t);
+	    //            printf("%d %d\n",eventIn,t);
             continue;
           }
           /* 
@@ -226,6 +226,7 @@ void TSearch::LS_MakeFeasible()
         printf("eventIn=%d\n",eventIn);
         printf("fNumOfEjectEvent = %d\n",fNumOfEjectEvent);
         printf("fListEjectEvent[ 0 ] = %3d \n",fListEjectEvent[ 0 ]);
+	printf("fEvent_TimeRequest[ %d ] = %d\n",eventIn, fEvent_TimeRequest[ eventIn ]);
         printf("r\\t ");
         for(int t = 0; t < fNumOfTime; ++t)
           printf("%3d ",t);
@@ -1163,7 +1164,7 @@ void TSearch::LS_Relocation_Swap_Extend()
   while( 1 )
     {
       ++fNumOfIterLS;
-      printf( "iter = %d -- %d: %d = %d %d %d %d %d\n", fNumOfIterLS, tIndi_LS.fPenalty_S, fPenalty_S, fPenalty_S1, fPenalty_S2, fPenalty_S3, fPenalty_S4, fPenalty_S5); fflush( stdout );
+      printf( "iter = %d -- %d: %d = %d %d %d %d %d %d\n", fNumOfIterLS, tIndi_LS.fPenalty_S, fPenalty_S, fPenalty_S1, fPenalty_S2, fPenalty_S3, fPenalty_S4, fPenalty_S5, fPenalty_S6); fflush( stdout );
       // fprintf( fp, "%d %d %d  \n", fNumOfIterLS, tIndi_LS.fPenalty_S, fPenalty_S );
     
 
@@ -1480,7 +1481,8 @@ void TSearch::LS_Relocation_Swap_Extend()
             event = candi[ 4*rr ];
             time = candi[ 4*rr+1 ];
             room = candi[ 4*rr+2 ];
-          
+	    if( fEvent_TimeRequest[ event ] != 1 )
+	      printf("not 1 time event Relocation\n");
             // fMoved_EventTime[ event ][ fTimeRoom_Event[ event ][ 0 ] ] = fNumOfIterLS + fTabuTenure;
             moved_event[ event ] = fNumOfIterLS + fTabuTenure;
             //printf("do relocation eject1 event=%d",event);
@@ -1498,7 +1500,8 @@ void TSearch::LS_Relocation_Swap_Extend()
             // room1 = fTimeRoom_Event[ event1 ][ 1 ];
             time2 = fTimeRoom_Event[ event2 ][ 0 ];
             // room2 = fTimeRoom_Event[ event2 ][ 1 ];
-          
+	    if( fEvent_TimeRequest[ event1 ] != 1 || fEvent_TimeRequest[ event2 ] != 1)
+	      printf("not 1 time event Swap\n");
             // fMoved_EventTime[ event1 ][ time1 ] = fNumOfIterLS + fTabuTenure;
             // fMoved_EventTime[ event2 ][ time2 ] = fNumOfIterLS + fTabuTenure;
             moved_event[ event1 ] = fNumOfIterLS + fTabuTenure;
