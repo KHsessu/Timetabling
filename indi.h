@@ -26,8 +26,9 @@ public:
   int fPenalty_S1;         // penalty S1
   int fPenalty_S2;         // penalty S2
   int fPenalty_S3;         // penalty S3
-  int fPenalty_S4;         // ken hachikubo add S4 S5 12.29
+  int fPenalty_S4;         // ken hachikubo add S4 S5 S6 12.29
   int fPenalty_S5;
+  int fPenalty_S6;
   double fEvaluationValue; // 評価値 = total penalty
 };
 

@@ -113,186 +113,190 @@ void TSearch::LS_MakeFeasible()
       fMoved_EventTime[ i ][ t ] = fNumOfIterLS; // Event Timeのみ(room は考慮していない)
   printf("LS_MakeFeasible()\n");
   while( 1 )
-  {
-    ++fNumOfIterLS;
+    {
+      ++fNumOfIterLS;
   
-    // if( fNumOfIterLS % 1 == 0 )
-    // printf( "iter = %d: %d \n", fNumOfIterLS, fNumOfEjectEvent ); fflush( stdout );
+      // if( fNumOfIterLS % 1 == 0 )
+      // printf( "iter = %d: %d \n", fNumOfIterLS, fNumOfEjectEvent ); fflush( stdout );
 
-    diffMin = 99999999;   
-    numOfCandi = 0;
-    for( int h = 0; h < fNumOfEjectEvent; ++h ){
-      eventIn = fListEjectEvent[ h ];                         // イジェクトリストから授業を排出
-      //      printf("%d request %d timeslot\n",eventIn, fEvent_TimeRequest[ eventIn ]);
+      diffMin = 99999999;   
+      numOfCandi = 0;
+      for( int h = 0; h < fNumOfEjectEvent; ++h ){
+        eventIn = fListEjectEvent[ h ];                         // イジェクトリストから授業を排出
+        //      printf("%d request %d timeslot\n",eventIn, fEvent_TimeRequest[ eventIn ]);
 
 
-      for( int t = 0; t < fNumOfTime; ++t ){
-
-        if( (t % fNumOfTimeInDay) + fEvent_TimeRequest[ eventIn ] -1  < fNumOfTimeInDay ){  // H6 check
-	  cantdoevent = 0;
-	}else{
-	  //	  printf("no time for event in eventIn = %d  time = %d tr = %d\n", eventIn, t, fEvent_TimeRequest[ eventIn ]);
-	  continue;
-	}
-	
-	for( int p = 0; p < fNumOfProf_Event[ eventIn ]; ++p ){  // H5 check
-	  professor = fListProf_Event[ eventIn ][ p ];
-	  for( int tr = 0; tr < fEvent_TimeRequest[ eventIn ]; ++tr ){
-	    if( fProfCantDo[ professor ][ t + tr ] == 1){
-	      cantdoevent = 1;
-	      break;
-	    }
-    }
-	}
-	if( cantdoevent == 1 ){
-	  //	  printf("professor can not do event on time in eventIn = %d  time = %d is skiped\n", eventIn, t);
-	  continue;
-	}
-
-	diffPenalty_S = this->DiffPenalty_S_Insert( eventIn, t );   /////// test
-	numOfFlagRoom = 0;	
-	for( int r = 0; r < fNumOfRoom; ++r ){
-	  for( int tr = 0; tr < fEvent_TimeRequest[ eventIn ]; ++tr ){
-	    event = fEvent_TimeRoom[ t + tr ][ r ];                        // 授業の競合チェック
-	    if( event != -1 && fConf_EventEvent[ eventIn ][ event ] != 0 ){ // その時間に授業が入ってる かつ 授業が競合
-	      flagRoom[ r ] = 1;  // この部屋には競合する授業がある
-	      ++numOfFlagRoom;    // その時間に入れると競合する授業が入っている部屋の数
-        break;
-	    }else{
-        flagRoom[ r ] = 0;
-      }
-    }
-	}
-	//	printf("%d   ",numOfFlagRoom); //check
-	
-	for( int r = 0; r < fNumOfRoom; ++r ){	  
-	  if( fAvail_EventRoom[ eventIn ][ r ] == 1 ){             // その部屋が使えて
-	    eventcount = 0;
-	    for( int tr = 0; tr < fEvent_TimeRequest[ eventIn ]; ++tr ){
-	      if( fEvent_TimeRoom[ t + tr ][ r ] != -1 ){
-          eventcount++;
-          break;
-        }
-	    }
-	    if( eventcount == 0 )                  // その部屋に授業がない
-	      numOfEjectOut = numOfFlagRoom;                       // 0が入る
-	    else if( flagRoom[ r ] == 1 )                          // その部屋に授業あるしその授業と競合する
-	      numOfEjectOut = numOfFlagRoom;                       // 競合する部屋数が代入
-	    else 
-	      numOfEjectOut = numOfFlagRoom + 1;                   // その部屋に授業はあるけどその授業とは競合しない 
-	  }
-	  else 
-	    numOfEjectOut = 99999999 + 10;
-	  
-	  if( numOfEjectOut == 99999999 + 10 )
-	    diff = 99999999 + 10;
-	  else{
-	    --numOfEjectOut;     // EventInを考慮
-	    // diff = 100 * numOfEjectOut + diffPenalty_S;  // evaluation function
-	    diff = numOfEjectOut;
-	  }
-	 	  
-    //	  	  printf("%d\n",numOfEjectOut);
-	  
-	  if( diff < diffMin ){   //競合する部屋が他よりも少ない
-	    if( fNumOfIterLS > fMoved_EventTime[ eventIn ][ t ] || fNumOfEjectEvent + numOfEjectOut < tIndi_LS.fNumOfEjectEvent ){
-	      diffMin = diff;
-	      candi[ 0 ] = eventIn;
-	      candi[ 1 ] = t;
-	      candi[ 2 ] = r;
-	      numOfCandi = 1;
-	    }
-	  }
-	  else if( diff == diffMin && numOfCandi < 1000 ){
-	    if( fNumOfIterLS > fMoved_EventTime[ eventIn ][ t ] || fNumOfEjectEvent + numOfEjectOut < tIndi_LS.fNumOfEjectEvent ){
-	      candi[ 3*numOfCandi ] = eventIn;
-	      candi[ 3*numOfCandi+1 ] = t;
-	      candi[ 3*numOfCandi+2 ] = r;
-	      ++numOfCandi;
-	    }
-	  }
-	}	  
-      }
-    }
-    
-    //    printf("%d\n",numOfCandi);
-    //    assert( numOfCandi != 0 );   
-    
-    if( numOfCandi == 0){//初期解生成が詰んだとき
-      printf("numOfCandi = %d\n",numOfCandi);
-      printf("eventIn=%d\n",eventIn);
-      printf("fNumOfEjectEvent = %d\n",fNumOfEjectEvent);
-      printf("fListEjectEvent[ 0 ] = %3d \n",fListEjectEvent[ 0 ]);
-      printf("r\\t ");
-      for(int t = 0; t < fNumOfTime; ++t)
-        printf("%3d ",t);
-      printf("\n");
-      for( int r = 0; r < fNumOfRoom; ++r ){
-        printf("%3d ",r);
         for( int t = 0; t < fNumOfTime; ++t ){
-          printf("%3d ",fEvent_TimeRoom[ t ][ r ]);
+        
+          if( (t % fNumOfTimeInDay) + fEvent_TimeRequest[ eventIn ] -1  >= fNumOfTimeInDay ){  // H6 check
+            printf("%d %d\n",eventIn,t);
+            continue;
+          }
+          /* 
+             cantdoevent = 0;
+             }else{
+             //	  printf("no time for event in eventIn = %d  time = %d tr = %d\n", eventIn, t, fEvent_TimeRequest[ eventIn ]);
+             continue;
+             }
+        
+             for( int p = 0; p < fNumOfProf_Event[ eventIn ]; ++p ){  // H5 check
+             professor = fListProf_Event[ eventIn ][ p ];
+             for( int tr = 0; tr < fEvent_TimeRequest[ eventIn ]; ++tr ){
+             if( fProfCantDo[ professor ][ t + tr ] == 1){
+             cantdoevent = 1;
+             break;
+             }
+             }
+             }
+             if( cantdoevent == 1 ){
+             printf("professor can not do event on time in eventIn = %d  time = %d is skiped\n", eventIn, t);
+             continue;
+             }
+          */
+          diffPenalty_S = this->DiffPenalty_S_Insert( eventIn, t );   /////// test
+          numOfFlagRoom = 0;	
+          for( int r = 0; r < fNumOfRoom; ++r ){
+            for( int tr = 0; tr < fEvent_TimeRequest[ eventIn ]; ++tr ){
+              event = fEvent_TimeRoom[ t + tr ][ r ];                        // 授業の競合チェック
+              if( event != -1 && fConf_EventEvent[ eventIn ][ event ] != 0 ){ // その時間に授業が入ってる かつ 授業が競合
+                flagRoom[ r ] = 1;  // この部屋には競合する授業がある
+                ++numOfFlagRoom;    // その時間に入れると競合する授業が入っている部屋の数
+                break;
+              }else{
+                flagRoom[ r ] = 0;
+              }
+            }
+          }
+          //	printf("%d   ",numOfFlagRoom); //check
+	
+          for( int r = 0; r < fNumOfRoom; ++r ){	  
+            if( fAvail_EventRoom[ eventIn ][ r ] == 1 ){             // その部屋が使えて
+              eventcount = 0;
+              for( int tr = 0; tr < fEvent_TimeRequest[ eventIn ]; ++tr ){
+                if( fEvent_TimeRoom[ t + tr ][ r ] != -1 ){
+                  eventcount++;
+                  break;
+                }
+              }
+              if( eventcount == 0 )                  // その部屋に授業がない
+                numOfEjectOut = numOfFlagRoom;                       // 0が入る
+              else if( flagRoom[ r ] == 1 )                          // その部屋に授業あるしその授業と競合する
+                numOfEjectOut = numOfFlagRoom;                       // 競合する部屋数が代入
+              else 
+                numOfEjectOut = numOfFlagRoom + 1;                   // その部屋に授業はあるけどその授業とは競合しない 
+            }
+            else 
+              numOfEjectOut = 99999999 + 10;
+	  
+            if( numOfEjectOut == 99999999 + 10 )
+              diff = 99999999 + 10;
+            else{
+              --numOfEjectOut;     // EventInを考慮
+              // diff = 100 * numOfEjectOut + diffPenalty_S;  // evaluation function
+              diff = numOfEjectOut;
+            }
+	 	  
+            //	  	  printf("%d\n",numOfEjectOut);
+	  
+            if( diff < diffMin ){   //競合する部屋が他よりも少ない
+              if( fNumOfIterLS > fMoved_EventTime[ eventIn ][ t ] || fNumOfEjectEvent + numOfEjectOut < tIndi_LS.fNumOfEjectEvent ){
+                diffMin = diff;
+                candi[ 0 ] = eventIn;
+                candi[ 1 ] = t;
+                candi[ 2 ] = r;
+                numOfCandi = 1;
+              }
+            }
+            else if( diff == diffMin && numOfCandi < 1000 ){
+              if( fNumOfIterLS > fMoved_EventTime[ eventIn ][ t ] || fNumOfEjectEvent + numOfEjectOut < tIndi_LS.fNumOfEjectEvent ){
+                candi[ 3*numOfCandi ] = eventIn;
+                candi[ 3*numOfCandi+1 ] = t;
+                candi[ 3*numOfCandi+2 ] = r;
+                ++numOfCandi;
+              }
+            }
+          }	  
         }
-        printf("\n");
       }
-      fflush(stdout);   
-      return;
-    }
+      //    printf("%d\n",numOfCandi);
+      //    assert( numOfCandi != 0 );   
     
-    rr = rand() % numOfCandi;
-    eventIn = candi[ 3*rr ];
-    timeIn = candi[ 3*rr+1 ];
-    roomIn = candi[ 3*rr+2 ];
-
-    fMoved_EventTime[ eventIn ][ timeIn ] = fNumOfIterLS + 100; // parameter
-
-
-    //    tmp = fNumOfEjectEvent;                      // for check
-    for( int tr = 0; tr < fEvent_TimeRequest[ eventIn ]; ++tr ){
-      event = fEvent_TimeRoom[ timeIn + tr ][ roomIn ];
-      if( event != -1 ){
-        //        printf("eject1\n");
-        this->Eject( event, 1 );
+      if( numOfCandi == 0){//初期解生成が詰んだとき
+        printf("numOfCandi = %d\n",numOfCandi);
+        printf("eventIn=%d\n",eventIn);
+        printf("fNumOfEjectEvent = %d\n",fNumOfEjectEvent);
+        printf("fListEjectEvent[ 0 ] = %3d \n",fListEjectEvent[ 0 ]);
+        printf("r\\t ");
+        for(int t = 0; t < fNumOfTime; ++t)
+          printf("%3d ",t);
+        printf("\n");
+        for( int r = 0; r < fNumOfRoom; ++r ){
+          printf("%3d ",r);
+          for( int t = 0; t < fNumOfTime; ++t ){
+            printf("%3d ",fEvent_TimeRoom[ t ][ r ]);
+          }
+          printf("\n");
+        }
+        fflush(stdout);   
+        return;
       }
-      
-      for( int r = 0; r < fNumOfRoom; ++r ){
-        event = fEvent_TimeRoom[ timeIn + tr ][ r ];
-        if( r != roomIn && event != -1 && fConf_EventEvent[ eventIn ][ event ] != 0 ){
-          //          printf("eject2\n");
+    
+      rr = rand() % numOfCandi;
+      eventIn = candi[ 3*rr ];
+      timeIn = candi[ 3*rr+1 ];
+      roomIn = candi[ 3*rr+2 ];
+
+      fMoved_EventTime[ eventIn ][ timeIn ] = fNumOfIterLS + 100; // parameter
+
+
+      //    tmp = fNumOfEjectEvent;                      // for check
+      for( int tr = 0; tr < fEvent_TimeRequest[ eventIn ]; ++tr ){
+        event = fEvent_TimeRoom[ timeIn + tr ][ roomIn ];
+        if( event != -1 ){
+          printf("eject1\n");
           this->Eject( event, 1 );
         }
-      }
-    }
-    //    printf("Insert( %d %d %d)\n", eventIn, timeIn, roomIn);
-    this->Insert( eventIn, timeIn, roomIn, 1 );    
-    //    assert( tmp + diffMin == fNumOfEjectEvent ); // for check
-    //}
-
-    if( fNumOfEjectEvent < tIndi_LS.fNumOfEjectEvent )    
-      this->TransToIndi( tIndi_LS );
-
-    if( fNumOfEjectEvent == 0 )
-    break;
-    //if( fNumOfIterLS > fMaxNumOfIterLS )
-    // break;
-    if(fNumOfIterLS > 100000 ){
-      printf("fail MakeFeasible()\n");
-      printf("r\\t ");
-      for(int t = 0; t < fNumOfTime; ++t)
-        printf("%3d ",t);
-      printf("\n");
-      for( int r = 0; r < fNumOfRoom; ++r ){
-        printf("%3d ",r);
-        for( int t = 0; t < fNumOfTime; ++t ){
-          printf("%3d ",fEvent_TimeRoom[ t ][ r ]);
+      
+        for( int r = 0; r < fNumOfRoom; ++r ){
+          event = fEvent_TimeRoom[ timeIn + tr ][ r ];
+          if( r != roomIn && event != -1 && fConf_EventEvent[ eventIn ][ event ] != 0 ){
+            printf("eject2\n");
+            this->Eject( event, 1 );
+          }
         }
-        printf("\n");
       }
-      fflush(stdout);    
-      return;
+      printf("Insert( %d %d %d)\n", eventIn, timeIn, roomIn);
+      this->Insert( eventIn, timeIn, roomIn, 1 );    
+      //    assert( tmp + diffMin == fNumOfEjectEvent ); // for check
+      //}
+
+      if( fNumOfEjectEvent < tIndi_LS.fNumOfEjectEvent )    
+        this->TransToIndi( tIndi_LS );
+
+      if( fNumOfEjectEvent == 0 )
+        break;
+      //if( fNumOfIterLS > fMaxNumOfIterLS )
+      // break;
+      if(fNumOfIterLS > 100000 ){
+        printf("fail MakeFeasible()\n");
+        printf("r\\t ");
+        for(int t = 0; t < fNumOfTime; ++t)
+          printf("%3d ",t);
+        printf("\n");
+        for( int r = 0; r < fNumOfRoom; ++r ){
+          printf("%3d ",r);
+          for( int t = 0; t < fNumOfTime; ++t ){
+            printf("%3d ",fEvent_TimeRoom[ t ][ r ]);
+          }
+          printf("\n");
+        }
+        fflush(stdout);    
+        return;
+      }
+      this->CheckValid(); 
+      
+        
     }
-    this->CheckValid(); 
-  }
-  
   printf("make sol\n");
   printf("r\\t ");
   for(int t = 0; t < fNumOfTime; ++t)
@@ -303,11 +307,11 @@ void TSearch::LS_MakeFeasible()
     for( int t = 0; t < fNumOfTime; ++t ){
       printf("%3d ",fEvent_TimeRoom[ t ][ r ]);
     }
-	printf("\n");
+    printf("\n");
   }
   fflush(stdout);
-  
-  this->TransToIndi( tIndi_LS );  
+      
+  this->TransToIndi( tIndi_LS );   
 }
 
 void TSearch::Eject_NoStudentEvent()
@@ -1207,15 +1211,16 @@ void TSearch::LS_Relocation_Swap_Extend()
               goto EEE1;
             }
           }
-
+          /*
           for( int p = 0; p < fNumOfProf_Event[ eventEj ]; ++p ){
-            professor = fListProf_Event[ eventEj ][ p ];
+          professor = fListProf_Event[ eventEj ][ p ];
             for(int tr = 0; tr < fEvent_TimeRequest[ eventEj ]; ++tr ){
               if( fProfCantDo[ professor ][ t + tr ] == 1)               // check H5 
                 goto EEE1;
             }
           }
 	
+          */
           // diff = 999999999;
           numCandiRoomIn = 0;	                         //入れる部屋を探す
           int roomflag;
@@ -1329,7 +1334,7 @@ void TSearch::LS_Relocation_Swap_Extend()
           if( time1 == time2 )  // これはenpty eventが存在している時のみ発生
             goto FFF0;
 
-          
+          /*
           for( int p = 0; p < fNumOfProf_Event[ event1 ]; ++p ){
             professor = fListProf_Event[ event1 ][ p ];
             for(int tr = 0; tr < fEvent_TimeRequest[ event1 ]; ++tr ){
@@ -1344,7 +1349,7 @@ void TSearch::LS_Relocation_Swap_Extend()
                 goto FFF0;
             }
           }
-        
+          */
           if( (time2 % fNumOfTimeInDay) + fEvent_TimeRequest[ event1 ] -1 >= fNumOfTimeInDay ) // check H6
             goto FFF0;
           if( (time1 % fNumOfTimeInDay) + fEvent_TimeRequest[ event2 ] -1 >= fNumOfTimeInDay ) // check H6
@@ -1413,73 +1418,17 @@ void TSearch::LS_Relocation_Swap_Extend()
             }
           }
           
-          //  printf("swap eject1 event%d time%d room%d\n",event1,time1,room1);
+          //          printf("swap eject1 event%d time%d room%d\n",event1,time1,room1);
           this->Eject( event1, 0 );
-
-
-          /* for check */
-          /*
- printf("r\\t ");
-  for(int t = 0; t < fNumOfTime; ++t)
-    printf("%3d ",t);
-  printf("\n");
-  for( int r = 0; r < fNumOfRoom; ++r ){
-    printf("%3d ",r);
-    for( int t = 0; t < fNumOfTime; ++t ){
-      printf("%3d ",fEvent_TimeRoom[ t ][ r ]);
-    }
-	printf("\n");
-  }         */
-          
-          //   printf("swap eject2 event%d time%d room%d\n",event2,time2,room2);
+          //          printf("swap eject2 event%d time%d room%d\n",event2,time2,room2);
           this->Eject( event2, 0 );
-
-          /*
-           printf("r\\t ");
-  for(int t = 0; t < fNumOfTime; ++t)
-    printf("%3d ",t);
-  printf("\n");
-  for( int r = 0; r < fNumOfRoom; ++r ){
-    printf("%3d ",r);
-    for( int t = 0; t < fNumOfTime; ++t ){
-      printf("%3d ",fEvent_TimeRoom[ t ][ r ]);
-    }
-	printf("\n");
-  }*/
-          
-          //  printf("swap insert1 event%d time%d room%d \n",event1,time2,roomIn2);
+          //          printf("swap insert1 event%d time%d room%d \n",event1,time2,roomIn2);
           this->Insert( event1, time2, roomIn2, 0 );// 怪しい
-
-          /*
-          printf("r\\t ");
-  for(int t = 0; t < fNumOfTime; ++t)
-    printf("%3d ",t);
-  printf("\n");
-  for( int r = 0; r < fNumOfRoom; ++r ){
-    printf("%3d ",r);
-    for( int t = 0; t < fNumOfTime; ++t ){
-      printf("%3d ",fEvent_TimeRoom[ t ][ r ]);
-    }
-	printf("\n");
-  }*/
-          //   printf("swap insert2 event%d time%d room%d \n",event2,time1,roomIn1);
+          //printf("swap insert2 event%d time%d room%d \n",event2,time1,roomIn1);
           this->Insert( event2, time1, roomIn1, 0 );//
-
-
-          /*
-          printf("r\\t ");
-  for(int t = 0; t < fNumOfTime; ++t)
-    printf("%3d ",t);
-  printf("\n");
-  for( int r = 0; r < fNumOfRoom; ++r ){
-    printf("%3d ",r);
-    for( int t = 0; t < fNumOfTime; ++t ){
-      printf("%3d ",fEvent_TimeRoom[ t ][ r ]);
-    }
-	printf("\n");
-  }
-          */
-  /* end check */
+          
+          
+          /* end check */
   
           //     printf("kari\n");
           diff = fPenalty_S - penalty_S_before; 
@@ -1508,11 +1457,11 @@ void TSearch::LS_Relocation_Swap_Extend()
           }
           //          printf("swap eject3 event=%d\n",event1);
           this->Eject( event1, 0 );
-          // printf("swap eject4 event=%d\n",event2);
+          //           printf("swap eject4 event=%d\n",event2);
           this->Eject( event2, 0 );
-          //printf("swap insert3 event%d time%d room%d \n",event1,time1,room1);
+          //          printf("swap insert3 event%d time%d room%d \n",event1,time1,room1);
           this->Insert( event1, time1, room1, 0 );
-          //printf("swap insert4 event%d time%d room%d \n",event2,time2,room2);
+          //          printf("swap insert4 event%d time%d room%d \n",event2,time2,room2);
           this->Insert( event2, time2, room2, 0 );
  
           assert( fPenalty_S == penalty_S_before );

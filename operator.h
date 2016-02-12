@@ -74,6 +74,7 @@ class TOperator {
   int fPenalty_S3;
   int fPenalty_S4;
   int fPenalty_S5;
+  int fPenalty_S6;
 
   int **fTimeRoom_Event; // [event][] -> time, room 
   int **fEvent_TimeRoom; // [time][room] -> event
@@ -89,7 +90,7 @@ class TOperator {
   int **fConf_EventTime;        // [event][time] -> eventをtimeに割付時のコンフリクト学生数
 
   // Variables for the methods
-  int fDiffPenalty_S, fDiffPenalty_S1, fDiffPenalty_S2, fDiffPenalty_S3, fDiffPenalty_S4, fDiffPenalty_S5;    // ken hachikubo change 12.29 
+  int fDiffPenalty_S, fDiffPenalty_S1, fDiffPenalty_S2, fDiffPenalty_S3, fDiffPenalty_S4, fDiffPenalty_S5, fDiffPenalty_S6;    // ken hachikubo change 12.29 
 
 
   // Parameters

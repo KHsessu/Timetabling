@@ -211,6 +211,7 @@ void TOperator::CheckValid()
   int penalty_S3 = fPenalty_S3;
   int penalty_S4 = fPenalty_S4;   // ken hachikubo add 12.29
   int penalty_S5 = fPenalty_S5;
+  int penalty_S6 = fPenalty_S6;
   //  printf("S1=%d S2=%d S3=%d S4=%d S5=%d\n",penalty_S1,penalty_S2,penalty_S3,penalty_S4,penalty_S5);
   this->CalEvaluation();
   assert( penalty_S1 == fPenalty_S1 );
@@ -385,7 +386,7 @@ void TOperator::CalEvaluation()
   fPenalty_S5 = penalty_S5;
   
   fflush(stdout);
-  fPenalty_S = penalty_S1 + penalty_S2 + penalty_S3 + penalty_S4 + penalty_S5;
+  fPenalty_S = penalty_S1 + penalty_S2 + penalty_S3 + penalty_S4 + penalty_S5 + fPenalty_S6;;
 }
 
 
@@ -517,7 +518,7 @@ int TOperator::DiffPenalty_S_Insert( int event, int time )
 
   fDiffPenalty_S4 = 0;
   if( slot < 3 && slot + fEvent_TimeRequest[ event ] > 3 )
-    fDiffPenalty_S4+=1000;
+    fDiffPenalty_S4 += 1000;
   
   fDiffPenalty_S5 = 0;
   for( int tr = 0; tr < fEvent_TimeRequest[ event ]; ++tr ){
@@ -526,6 +527,21 @@ int TOperator::DiffPenalty_S_Insert( int event, int time )
         fDiffPenalty_S5 += 500;
     }
   }
+  
+    fDiffPenalty_S6 = 0;
+    /*
+    for( int p = 0; p < fNumOfProf_Event[ event ]; ++p ){
+    prof = fListProf_Event[ event ][ p ];
+    for( int tr = 0; tr < fEvent_TimeRequest[ event ]; ++tr ){
+    if( time + tr == fProfCantDo[ prof ][ time + tr ] == 1)
+    fDiffPenalty_S6++;
+    }
+    }
+  */
+
+
+
+
   
   /*
   fDiffPenalty_S1 = 0;
@@ -563,7 +579,7 @@ int TOperator::DiffPenalty_S_Insert( int event, int time )
   }
   */
   
-  fDiffPenalty_S = fDiffPenalty_S1 + fDiffPenalty_S2 + fDiffPenalty_S3 + fDiffPenalty_S4 + fDiffPenalty_S5;
+    fDiffPenalty_S = fDiffPenalty_S1 + fDiffPenalty_S2 + fDiffPenalty_S3 + fDiffPenalty_S4 + fDiffPenalty_S5 + fDiffPenalty_S6;
 
   return fDiffPenalty_S;
 }
@@ -571,12 +587,17 @@ int TOperator::DiffPenalty_S_Insert( int event, int time )
 
 void TOperator::ResetSol()
 {
+  int count;
+  int listn;
+  int *listevent;
+  
   fPenalty_S = 0;
   fPenalty_S1 = 0;
   fPenalty_S2 = 0;
   fPenalty_S3 = 0;
   fPenalty_S4 = 0;
   fPenalty_S5 = 0;
+  fPenalty_S6 = 0;
 
   for( int e = 0; e < fNumOfEvent; ++e ){
     fTimeRoom_Event[ e ][ 0 ] = -1;
@@ -586,11 +607,26 @@ void TOperator::ResetSol()
   for( int t = 0; t < fNumOfTime; ++t )
     for( int r = 0; r < fNumOfRoom; ++r )
       fEvent_TimeRoom[ t ][ r ] = -1;
-
-  tRand->Permutation( fListEjectEvent, fNumOfEvent, fNumOfEvent ); 
-  for( int i = 0; i < fNumOfEvent; ++i )
+  listevent = new int [ fNumOfEvent ];
+  
+  tRand->Permutation( listevent , fNumOfEvent, fNumOfEvent );
+  
+  listn = fNumOfEvent-1;
+  for( int t = 1; t < fNumOfTimeInDay; ++t ){
+    count = 0;
+    for( int i = 0; i < fNumOfEvent; ++i ){
+      if( t == fEvent_TimeRequest[ listevent[i] ]){
+        fListEjectEvent[ listn ] = listevent[ i ];
+        --listn;
+      }
+    }
+  }
+  assert( listn == -1 );
+    
+  for( int i = 0; i < fNumOfEvent; ++i ){
     fInvEjectEvent[ fListEjectEvent[ i ] ] = i;
-
+    //    printf("%3d\n",fListEjectEvent[ i ]);
+    }
   /*
   for( int e = 0; e < fNumOfEvent; ++e ){
     fListEjectEvent[ e ] = e;
@@ -773,8 +809,18 @@ void TOperator::Eject( int event, int flag )
         fPenalty_S5 -= 500;
     }
   }
-  
-
+  /*
+  //  fPenalty_S6
+  for( int p = 0; p < fNumOfProf_Event[ event ]; ++p ){
+    professor = fListProf_Event[ event ][ p ];
+    for(int tr = 0; tr < fEvent_TimeRequest[ event ]; ++tr ){
+      if( fProfCantDo[ professor ][ time + tr ] == 1){
+        --fPenalty_S6;
+      }
+    }
+  }  
+  printf("fPenalty_S6 = %d\n",fPenalty_S6);
+  */
     /*
     // fPenalty_S3;
     
@@ -812,7 +858,7 @@ void TOperator::Eject( int event, int flag )
   */
 
   //  printf("eject event%d S1=%d S2=%d S3=%d S4=%d S5=%d\n", event, fPenalty_S1, fPenalty_S2, fPenalty_S3, fPenalty_S4, fPenalty_S5);
-  fPenalty_S = fPenalty_S1 + fPenalty_S2 + fPenalty_S3 + fPenalty_S4 + fPenalty_S5;
+  fPenalty_S = fPenalty_S1 + fPenalty_S2 + fPenalty_S3 + fPenalty_S4 + fPenalty_S5 + fPenalty_S6;
 }
 
 
@@ -838,6 +884,7 @@ void TOperator::Insert( int event, int time, int room, int flag )
     }
     assert( fEvent_TimeRoom[ time + tr ][ room ] == -1 );//   
   }//
+  //  printf("event=%d time=%d room=%d flag=%d\n", event, time, room, flag);
   assert( fTimeRoom_Event[ event ][ 0 ] == -1 ); 
   for( int r = 0; r < fNumOfRoom; ++r ){ // partial feasibility
     event1 = fEvent_TimeRoom[ time ][ r ];
@@ -847,7 +894,7 @@ void TOperator::Insert( int event, int time, int room, int flag )
       assert( 1 == 2 );
     }
   }
-
+  
   
   fTimeRoom_Event[ event ][ 0 ] = time;
   fTimeRoom_Event[ event ][ 1 ] = room;
@@ -971,8 +1018,10 @@ void TOperator::Insert( int event, int time, int room, int flag )
   
   slot =  time % fNumOfTimeInDay;
   // fPenalty_S4
-  if( slot < 3 && slot + fEvent_TimeRequest[ event ] > 3)
+  if( slot < 3 && slot + fEvent_TimeRequest[ event ] > 3){
     fPenalty_S4 += 1000;
+    //   printf("event %d in slot is %d\n",event,slot);
+  }
   // fPenalty_S1
   for( int tr = 0; tr < fEvent_TimeRequest[ event ]; ++tr ){
     if( slot == fNumOfTimeInDay - 1 || slot == 0)
@@ -1027,9 +1076,21 @@ void TOperator::Insert( int event, int time, int room, int flag )
         fPenalty_S5 += 500;
     }
   }
-  
+
+  /*
+  //  fPenalty_S6
+  for( int p = 0; p < fNumOfProf_Event[ event ]; ++p ){
+    professor = fListProf_Event[ event ][ p ];
+    for(int tr = 0; tr < fEvent_TimeRequest[ event ]; ++tr ){
+      if( fProfCantDo[ professor ][ time + tr ] == 1){
+        ++fPenalty_S6;
+      }
+    }
+  }
+  printf("fPenalty_S6 = %d\n",fPenalty_S6);
+  */
   //  printf("insert event%d S1=%d S2=%d S3=%d S4=%d S5=%d\n", event, fPenalty_S1, fPenalty_S2, fPenalty_S3, fPenalty_S4, fPenalty_S5);
-  fPenalty_S = fPenalty_S1 + fPenalty_S2 + fPenalty_S3 + fPenalty_S4 + fPenalty_S5;
+  fPenalty_S = fPenalty_S1 + fPenalty_S2 + fPenalty_S3 + fPenalty_S4 + fPenalty_S5 + fPenalty_S6;
 
 
 }
