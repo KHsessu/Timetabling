@@ -23,7 +23,7 @@ void TEnvironment::Define()
   tSearch->Set( tEvaluator );  
   tSearch->fDstFile = fDstFile;
 
-  tIndi.Define( tEvaluator->fNumOfEvent );
+  tIndi.Define( tEvaluator->fNumOfEvent ,tEvaluator->fNumOfTime , tEvaluator->fNumOfRoom);
 }
 
 void TEnvironment::SetParameter( int *para )
@@ -46,7 +46,7 @@ void TEnvironment::Result( int numOfTrial, char* dstFile )
   fprintf( fp, "%d %d %lf %d %d %d %d %d %d %d\n", numOfTrial, tSearch->fNumOfIterFindBest  , (double)(fTimeEnd - fTimeStart)/(double)CLOCKS_PER_SEC, (int)tIndi.fEvaluationValue , tIndi.fPenalty_S1 , tIndi.fPenalty_S2 , tIndi.fPenalty_S3, tIndi.fPenalty_S4, tIndi.fPenalty_S5, tIndi.fPenalty_S6 );
   fclose(fp);
 
-  sprintf( filename, "./result/%s_Timetablle", dstFile );
+  sprintf( filename, "./result/%s_Timetable", dstFile );
   fp = fopen( filename, "a" );
   fprintf(fp,"r\\t ");
   for(int t = 0; t < tSearch->fNumOfTime; ++t)
@@ -55,7 +55,7 @@ void TEnvironment::Result( int numOfTrial, char* dstFile )
   for( int r = 0; r < tSearch->fNumOfRoom; ++r ){
     fprintf(fp,"%3d ",r);
     for( int t = 0; t < tSearch->fNumOfTime; ++t ){
-      fprintf(fp,"%3d ",tSearch->fEvent_TimeRoom[ t ][ r ]);
+      fprintf(fp,"%3d ",tIndi.fEvent_TimeRoom[ t ][ r ]);
     }
     fprintf(fp,"\n");
   }
@@ -63,7 +63,7 @@ void TEnvironment::Result( int numOfTrial, char* dstFile )
   fclose(fp);
 
   
-  sprintf( filename, "./result/%s%d_Sol", dstFile , numOfTrial );
+  sprintf( filename, "./result/%s_%d_Sol", dstFile , numOfTrial );
   fp = fopen( filename, "a" );
   tIndi.WriteTo( fp );
   fclose(fp);
@@ -122,7 +122,7 @@ void TEnvironment::DoIt()
   */
 
 
-  printf( "S1 = %d S2 = %d S3 = %d S4 = %d S5 = %d \n",  tSearch->fPenalty_S1,  tSearch->fPenalty_S2, tSearch->fPenalty_S3, tSearch->fPenalty_S4, tSearch->fPenalty_S5);
+  printf( "S1 = %d S2 = %d S3 = %d S4 = %d S5 = %d S6 = %d\n",  tSearch->fPenalty_S1,  tSearch->fPenalty_S2, tSearch->fPenalty_S3, tSearch->fPenalty_S4, tSearch->fPenalty_S5, tSearch->fPenalty_S6);
 
 
   fTimeEnd = clock();

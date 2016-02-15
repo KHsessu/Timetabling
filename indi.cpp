@@ -6,12 +6,17 @@ TIndi::TIndi()
 {
 }
 
-TIndi::TIndi( int n )
+TIndi::TIndi( int n , int t , int r)
 {               
   fNumOfEvent = n;
   fTimeRoom_Event = new int* [ fNumOfEvent ];
   for( int e = 0; e < fNumOfEvent; ++e ) 
     fTimeRoom_Event[ e ] = new int [ 2 ];
+  fNumOfTime = t;
+  fNumOfRoom = r;
+  fEvent_TimeRoom = new int* [ fNumOfTime ];
+  for( int t = 0; t < fNumOfTime; ++t)
+    fEvent_TimeRoom[ t ] = new int[ fNumOfRoom ];
 }
 
 TIndi::~TIndi()
@@ -38,12 +43,18 @@ TIndi& TIndi::operator = ( const TIndi& src )
   return *this;
 }
 
-void TIndi::Define( int n )
+void TIndi::Define( int n , int t , int r)
 {
   fNumOfEvent = n;
   fTimeRoom_Event = new int* [ fNumOfEvent ];
   for( int e = 0; e < fNumOfEvent; ++e ) 
     fTimeRoom_Event[ e ] = new int [ 2 ];
+  fNumOfTime = t;
+  fNumOfRoom = r;
+  fEvent_TimeRoom = new int* [ fNumOfTime ];
+  for( int t = 0; t < fNumOfTime; ++t)
+    fEvent_TimeRoom[ t ] = new int[ fNumOfRoom ];
+  
 } 
 
 void TIndi::PrintOn() const

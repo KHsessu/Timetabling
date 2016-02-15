@@ -15,7 +15,9 @@ void TOperator::TransToIndi( TIndi& indi )
 {
   int v, p;
 
-  assert( indi.fNumOfEvent == fNumOfEvent );     
+  assert( indi.fNumOfEvent == fNumOfEvent );
+  assert( indi.fNumOfTime == fNumOfTime );
+  assert( indi.fNumOfRoom == fNumOfRoom );     
   // indi.fNumOfEvent = fNumOfEvent;     
   indi.fNumOfEjectEvent = fNumOfEjectEvent;     
   indi.fPenalty_S = fPenalty_S;
@@ -30,6 +32,14 @@ void TOperator::TransToIndi( TIndi& indi )
   for( int e = 0; e < fNumOfEvent; ++e ){
     indi.fTimeRoom_Event[ e ][ 0 ] = fTimeRoom_Event[ e ][ 0 ];
     indi.fTimeRoom_Event[ e ][ 1 ] = fTimeRoom_Event[ e ][ 1 ];
+  }
+
+  for( int t = 0; t < fNumOfTime; ++t ){
+    for( int r = 0; r < fNumOfRoom; ++r ){
+      //      printf("%d %d\n",t,r);
+      indi.fEvent_TimeRoom[ t ][ r ] = fEvent_TimeRoom[ t ][ r ];
+      //      printf("更新");
+    }
   }
 }
 
@@ -109,7 +119,7 @@ void TOperator::Set( TEvaluator* eval )
 
 void TOperator::SetParameter()
 {
-  fFlagCheckValid = 1;
+  fFlagCheckValid = 0;
 }
 
 
@@ -362,8 +372,8 @@ void TOperator::CalEvaluation()
   penalty_S4 = 0;
   for(int e = 0; e < fNumOfEvent; e++){
     slot = fTimeRoom_Event[ e ][ 0 ] % fNumOfTimeInDay;
-    if( slot != -1 && slot < 3 && ( slot + fEvent_TimeRequest[ e ]) > 3 ){
-      //      printf("e=%d\n",e);
+    if( slot != -1 && slot <= 1 && ( slot + fEvent_TimeRequest[ e ]) > 2 ){
+        printf("S4 penaty!! e=%d\n",e);
       penalty_S4 += 1000;
     }
   }
@@ -379,8 +389,13 @@ void TOperator::CalEvaluation()
       for( int rr = r + 1; rr < fNumOfRoom; ++rr){
         event2 = fEvent_TimeRoom[ t ][ rr ];
         if(event1 != -1 && event2 != -1)
-          if( fEvent_Required[ event1 ] !=0 && fEvent_Required[ event1 ] == fEvent_Required[ event2 ])
-            penalty_S5 += 500;
+          if( fEvent_Required[ event1 ] !=0 && fEvent_Required[ event1 ] == fEvent_Required[ event2 ]){
+	    //int event1a, event2a;
+	    //event1a = event1 % 44;
+	    //event2a = event2 % 44;
+	    printf("S5 penalty!! e1=%d & e2=%d e1amari44=%d e2amari44=%d\n",event1,event2,event1%44,event2%44);
+	    penalty_S5 += 500;
+	  }
       }
     }
   }
@@ -535,7 +550,7 @@ int TOperator::DiffPenalty_S_Insert( int event, int time )
   }
 
   fDiffPenalty_S4 = 0;
-  if( slot < 3 && slot + fEvent_TimeRequest[ event ] > 3 )
+  if( slot <= 1 && (slot + fEvent_TimeRequest[ event ]) > 2 )
     fDiffPenalty_S4 += 1000;
   
   fDiffPenalty_S5 = 0;
@@ -771,7 +786,7 @@ void TOperator::Eject( int event, int flag )
   
   slot =  time % fNumOfTimeInDay;
   //  fPenalty_S4
-  if( slot < 3 && slot + fEvent_TimeRequest[ event ] > 3)
+  if( slot < 2 && (slot + fEvent_TimeRequest[ event ]) > 2)
   fPenalty_S4 -= 1000;
   // fPenalty_S1
   for( int tr = 0; tr < fEvent_TimeRequest[ event ]; ++tr ){
@@ -1034,7 +1049,7 @@ void TOperator::Insert( int event, int time, int room, int flag )
   
   slot =  time % fNumOfTimeInDay;
   // fPenalty_S4
-  if( slot < 3 && slot + fEvent_TimeRequest[ event ] > 3){
+  if( slot < 2 && (slot + fEvent_TimeRequest[ event ]) > 2){
     fPenalty_S4 += 1000;
     //   printf("event %d in slot is %d\n",event,slot);
   }

@@ -16,7 +16,7 @@ TSearch::~TSearch()
 void TSearch::Set( TEvaluator* eval ) 
 {
   TOperator::Set( eval );
-  tIndi_LS.Define( fNumOfEvent );
+  tIndi_LS.Define( fNumOfEvent, fNumOfTime, fNumOfRoom);
 
   fMoved_EventTime = new int* [ fNumOfEvent ];
   for( int e = 0; e < fNumOfEvent; ++e )
@@ -93,6 +93,8 @@ void TSearch::LS_MakeFeasible()
   int diff, diffMin;
   int numOfCandi;
   int candi[ 3000 ];
+  int diffpenaltyS, diffpenaltySMin;
+  int numOfDifmin;
   int rr;
   int tmp;
   int numOfEjectOut;
@@ -119,7 +121,8 @@ void TSearch::LS_MakeFeasible()
       // if( fNumOfIterLS % 1 == 0 )
       // printf( "iter = %d: %d \n", fNumOfIterLS, fNumOfEjectEvent ); fflush( stdout );
 
-      diffMin = 99999999;   
+      diffMin = 99999999;
+      diffpenaltySMin = 99999999;
       numOfCandi = 0;
       for( int h = 0; h < fNumOfEjectEvent; ++h ){
         eventIn = fListEjectEvent[ h ];                         // イジェクトリストから授業を排出
@@ -195,7 +198,9 @@ void TSearch::LS_MakeFeasible()
               // diff = 100 * numOfEjectOut + diffPenalty_S;  // evaluation function
               diff = numOfEjectOut;
             }
-	 	  
+
+
+	    diffpenaltyS = DiffPenalty_S_Insert( eventIn , t );
             //	  	  printf("%d\n",numOfEjectOut);
 	  
             if( diff < diffMin ){   //競合する部屋が他よりも少ない
@@ -205,13 +210,37 @@ void TSearch::LS_MakeFeasible()
                 candi[ 1 ] = t;
                 candi[ 2 ] = r;
                 numOfCandi = 1;
+		numOfDifmin = 1;
               }
             }
             else if( diff == diffMin && numOfCandi < 1000 ){
               if( fNumOfIterLS > fMoved_EventTime[ eventIn ][ t ] || fNumOfEjectEvent + numOfEjectOut < tIndi_LS.fNumOfEjectEvent ){
-                candi[ 3*numOfCandi ] = eventIn;
-                candi[ 3*numOfCandi+1 ] = t;
-                candi[ 3*numOfCandi+2 ] = r;
+		if( diffpenaltyS < diffpenaltySMin ){
+		  diffpenaltySMin = diffpenaltyS;
+		  for( int c = numOfCandi; c >= 0; --c ){
+		    candi[ 3*c + 3 ] = candi[ 3*c ];
+		    candi[ 3*c + 4 ] = candi[ 3*c + 1 ];
+		    candi[ 3*c + 5 ] = candi[ 3*c + 2 ];
+		  }
+		  candi[ 0 ] = eventIn;
+		  candi[ 1 ] = t;
+		  candi[ 2 ] = r;
+		  numOfDifmin = 1;
+		}else if( diffpenaltyS == diffpenaltySMin ){
+		  for( int c = numOfCandi; c >= 0; --c ){
+		    candi[ 3*c + 3 ] = candi[ 3*c ];
+		    candi[ 3*c + 4 ] = candi[ 3*c + 1 ];
+		    candi[ 3*c + 5 ] = candi[ 3*c + 2 ];
+		  }
+		  candi[ 0 ] = eventIn;
+		  candi[ 1 ] = t;
+		  candi[ 2 ] = r;
+		  ++numOfDifmin;		  
+		}else{
+		  candi[ 3*numOfCandi ] = eventIn;
+		  candi[ 3*numOfCandi+1 ] = t;
+		  candi[ 3*numOfCandi+2 ] = r;
+		}
                 ++numOfCandi;
               }
             }
@@ -241,12 +270,17 @@ void TSearch::LS_MakeFeasible()
         fflush(stdout);   
         return;
       }
-    
+      /*    
       rr = rand() % numOfCandi;
       eventIn = candi[ 3*rr ];
       timeIn = candi[ 3*rr+1 ];
       roomIn = candi[ 3*rr+2 ];
-
+      */
+      rr = rand() % numOfDifmin;
+      eventIn = candi[ 3*rr ];
+      timeIn = candi[ 3*rr+1 ];
+      roomIn = candi[ 3*rr+2 ];
+      
       fMoved_EventTime[ eventIn ][ timeIn ] = fNumOfIterLS + 100; // parameter
 
 
@@ -1164,7 +1198,7 @@ void TSearch::LS_Relocation_Swap_Extend()
   while( 1 )
     {
       ++fNumOfIterLS;
-      printf( "iter = %d -- %d: %d = %d %d %d %d %d %d\n", fNumOfIterLS, tIndi_LS.fPenalty_S, fPenalty_S, fPenalty_S1, fPenalty_S2, fPenalty_S3, fPenalty_S4, fPenalty_S5, fPenalty_S6); fflush( stdout );
+      //      printf( "iter = %d -- %d: %d = %d %d %d %d %d %d\n", fNumOfIterLS, tIndi_LS.fPenalty_S, fPenalty_S, fPenalty_S1, fPenalty_S2, fPenalty_S3, fPenalty_S4, fPenalty_S5, fPenalty_S6); fflush( stdout );
       // fprintf( fp, "%d %d %d  \n", fNumOfIterLS, tIndi_LS.fPenalty_S, fPenalty_S );
     
 
@@ -1482,7 +1516,7 @@ void TSearch::LS_Relocation_Swap_Extend()
             time = candi[ 4*rr+1 ];
             room = candi[ 4*rr+2 ];
 	    if( fEvent_TimeRequest[ event ] != 1 )
-	      printf("not 1 time event Relocation\n");
+	      //  printf("not 1 time event Relocation\n");
             // fMoved_EventTime[ event ][ fTimeRoom_Event[ event ][ 0 ] ] = fNumOfIterLS + fTabuTenure;
             moved_event[ event ] = fNumOfIterLS + fTabuTenure;
             //printf("do relocation eject1 event=%d",event);
@@ -1501,7 +1535,7 @@ void TSearch::LS_Relocation_Swap_Extend()
             time2 = fTimeRoom_Event[ event2 ][ 0 ];
             // room2 = fTimeRoom_Event[ event2 ][ 1 ];
 	    if( fEvent_TimeRequest[ event1 ] != 1 || fEvent_TimeRequest[ event2 ] != 1)
-	      printf("not 1 time event Swap\n");
+	      //  printf("not 1 time event Swap\n");
             // fMoved_EventTime[ event1 ][ time1 ] = fNumOfIterLS + fTabuTenure;
             // fMoved_EventTime[ event2 ][ time2 ] = fNumOfIterLS + fTabuTenure;
             moved_event[ event1 ] = fNumOfIterLS + fTabuTenure;
