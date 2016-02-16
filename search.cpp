@@ -1198,7 +1198,7 @@ void TSearch::LS_Relocation_Swap_Extend()
   while( 1 )
     {
       ++fNumOfIterLS;
-      //      printf( "iter = %d -- %d: %d = %d %d %d %d %d %d\n", fNumOfIterLS, tIndi_LS.fPenalty_S, fPenalty_S, fPenalty_S1, fPenalty_S2, fPenalty_S3, fPenalty_S4, fPenalty_S5, fPenalty_S6); fflush( stdout );
+      printf( "iter = %d -- %d: %d = %d %d %d %d %d %d\n", fNumOfIterLS, tIndi_LS.fPenalty_S, fPenalty_S, fPenalty_S1, fPenalty_S2, fPenalty_S3, fPenalty_S4, fPenalty_S5, fPenalty_S6); fflush( stdout );
       // fprintf( fp, "%d %d %d  \n", fNumOfIterLS, tIndi_LS.fPenalty_S, fPenalty_S );
     
 
